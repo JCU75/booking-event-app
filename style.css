@@ -1,0 +1,25 @@
+@media print {
+	body * {
+		visibility: hidden;
+	}
+	#printSection,
+	#printSection * {
+		visibility: visible;
+	}
+	#printSection {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+	}
+	.no-print {
+		display: none !important;
+	}
+}
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+.no-scrollbar {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}

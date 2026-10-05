@@ -1,0 +1,1200 @@
+<!doctype html>
+<html lang="fr">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Cultura Saint-Aunès - Agenda des Événements</title>
+		<link rel="stylesheet" href="style.css" />
+
+		<!-- Tailwind CSS -->
+		<script src="https://cdn.tailwindcss.com"></script>
+		<!-- Import police Poppins -->
+		<link
+			href="https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap"
+			rel="stylesheet"
+		/>
+		<!-- Font Awesome CDN -->
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+		/>
+		<!-- SDK Supabase -->
+		<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+	</head>
+	<body
+		class="bg-slate-100 min-h-screen font-sans text-slate-800 flex flex-col justify-between overflow-x-hidden"
+	>
+		<!-- En-tête Commun -->
+		<header
+			class="bg-gradient-to-r from-[#055BA7] to-[#00417A] border-b border-slate-700 px-6 py-4 shadow-md sticky top-0 z-10 no-print"
+		>
+			<div class="w-full px-0 flex justify-between items-center">
+				<div
+					class="flex items-center space-x-4"
+					onclick="
+						window.location.hash = '';
+						router();
+					"
+				>
+					<img
+						src="https://www.cultura.com/media_12dd2d68ce701e23078febb779c9ab1b5490f9dd7.svg?width=750&format=svg&optimize=medium"
+						alt="Cultura Logo"
+						class="h-8 object-contain filter brightness-0 invert"
+					/>
+					<div class="border-l border-blue-400 pl-4">
+						<h1 class="text-white font-bold text-lg">
+							Agenda des Événements
+						</h1>
+						<p class="text-xs text-blue-200">Cultura Saint-Aunès</p>
+					</div>
+				</div>
+				<div id="headerActions"></div>
+			</div>
+		</header>
+
+		<!-- CONTENEUR PRINCIPAL ROUTÉ PAR JAVASCRIPT -->
+		<main class="w-full flex-grow py-10" id="mainContainer">
+			<div class="flex justify-center items-center py-20">
+				<div class="text-slate-500 text-sm font-semibold animate-pulse">
+					Connexion à la base de données...
+				</div>
+			</div>
+		</main>
+
+		<!-- MODALE DE RÉSERVATION CLIENT -->
+		<div
+			id="eventModal"
+			class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4"
+		>
+			<div
+				class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all"
+			>
+				<div
+					class="bg-[#034475] p-6 text-white flex justify-between items-start"
+				>
+					<div>
+						<span
+							id="modalCategory"
+							class="bg-blue-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider"
+							>Catégorie</span
+						>
+						<h3
+							id="modalTitle"
+							class="text-xl font-bold mt-2 leading-snug"
+						>
+							Titre de l'événement
+						</h3>
+					</div>
+					<button
+						onclick="fermerModal()"
+						class="text-slate-300 hover:text-white text-2xl font-bold px-2"
+					>
+						&times;
+					</button>
+				</div>
+
+				<div class="p-6 space-y-6">
+					<p
+						id="modalDesc"
+						class="text-sm text-slate-600 leading-relaxed"
+					></p>
+
+					<div
+						class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-sm text-slate-700"
+					>
+						<div class="flex items-center gap-3">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-5 w-5 text-blue-600"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+								/>
+							</svg>
+							<span id="modalDate" class="font-medium">Date</span>
+						</div>
+						<div class="flex items-center gap-3">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-5 w-5 text-blue-600"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+								/>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+								/>
+							</svg>
+							<span class="font-medium">Cultura Saint-Aunès</span>
+						</div>
+						<div
+							class="flex items-center justify-between pt-2 border-t border-slate-200"
+						>
+							<span
+								class="text-xs text-slate-500 uppercase font-semibold"
+								>Disponibilité :</span
+							>
+							<span
+								class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full"
+								><span id="modalPlaces">10</span> places
+								restantes /
+								<span id="modalMaxPlaces">10</span></span
+							>
+						</div>
+					</div>
+
+					<!-- Formulaire de Réservation avec Email -->
+					<div id="modalFormContainer">
+						<h4 class="text-sm font-bold text-slate-800 mb-3">
+							Réserver votre place
+						</h4>
+						<form
+							id="reservationForm"
+							onsubmit="validerReservation(event)"
+							class="space-y-3"
+						>
+							<input type="hidden" id="modalEventId" />
+							<div class="grid grid-cols-2 gap-3">
+								<div>
+									<label
+										class="block text-[10px] font-bold text-slate-600 uppercase mb-1"
+										>Nom</label
+									>
+									<input
+										type="text"
+										id="nom"
+										required
+										placeholder="Votre nom"
+										class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+									/>
+								</div>
+								<div>
+									<label
+										class="block text-[10px] font-bold text-slate-600 uppercase mb-1"
+										>Prénom</label
+									>
+									<input
+										type="text"
+										id="prenom"
+										required
+										placeholder="Votre prénom"
+										class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+									/>
+								</div>
+							</div>
+							<div>
+								<label
+									class="block text-[10px] font-bold text-slate-600 uppercase mb-1"
+									>Adresse E-mail</label
+								>
+								<input
+									type="email"
+									id="email"
+									required
+									placeholder="votre.email@exemple.fr"
+									class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+								/>
+							</div>
+							<div
+								class="grid grid-cols-1 gap-3"
+								id="ageFieldContainer"
+							>
+								<div>
+									<label
+										class="block text-[10px] font-bold text-slate-600 uppercase mb-1"
+										>Téléphone</label
+									>
+									<input
+										type="tel"
+										id="telephone"
+										required
+										placeholder="06 12 34 56 78"
+										class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+									/>
+								</div>
+							</div>
+							<p
+								class="text-[11px] text-gray-500 text-justify leading-relaxed mb-4 px-1"
+							>
+								Les informations recueillies font l'objet d'un
+								traitement informatisé par Cultura Saint-Aunès
+								destiné à la gestion de votre réservation et de
+								votre participation à l'événement. Conformément
+								au RGPD, vous disposez d'un droit d'accès, de
+								rectification et de suppression de vos données.
+								Les données sont conservées pour la durée
+								strictement nécessaire à la gestion de
+								l'événement.
+							</p>
+							<button
+								type="submit"
+								class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-md mt-2"
+							>
+								Confirmer ma réservation
+							</button>
+						</form>
+					</div>
+
+					<div
+						id="modalSuccess"
+						class="hidden text-center space-y-3 py-4"
+					>
+						<div
+							class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold"
+						>
+							✓
+						</div>
+						<h4 class="text-lg font-bold text-slate-900">
+							Réservation validée !
+						</h4>
+						<p
+							class="text-xs text-slate-600 text-justify leading-relaxed px-4 mb-6"
+						>
+							Merci
+							<span
+								id="successName"
+								class="font-semibold capitalize"
+							></span
+							>. Votre place est bien enregistrée ! Veuillez vous
+							présenter en magasin 10 minutes avant l'événement.
+						</p>
+						<button
+							onclick="fermerModal()"
+							class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2 rounded-lg transition"
+						>
+							Fermer
+						</button>
+					</div>
+
+					<div
+						id="modalComplet"
+						class="hidden text-center space-y-2 py-4"
+					>
+						<div
+							class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-lg font-bold"
+						>
+							✕
+						</div>
+						<h4 class="text-lg font-bold text-slate-900">
+							Événement Complet
+						</h4>
+						<p class="text-xs text-slate-600">
+							Désolé, toutes les places pour cet événement ont été
+							réservées.
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- MODALE GESTION DES INSCRITS / ANNULATIONS (ADMIN) -->
+		<div
+			id="adminReservationsModal"
+			class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4"
+		>
+			<div
+				class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full overflow-hidden flex flex-col max-h-[90vh]"
+			>
+				<div
+					class="bg-[#034475] p-6 text-white flex justify-between items-center no-print"
+				>
+					<div>
+						<h3 id="adminResTitle" class="text-lg font-bold">
+							Liste des inscrits
+						</h3>
+						<p id="adminResSub" class="text-xs text-blue-200">
+							Gérez les participations et annulations
+						</p>
+					</div>
+					<button
+						onclick="fermerAdminResModal()"
+						class="text-slate-300 hover:text-white text-2xl font-bold"
+					>
+						&times;
+					</button>
+				</div>
+
+				<div class="p-6 overflow-y-auto flex-grow" id="printSection">
+					<div class="hidden print:block mb-4">
+						<h2 class="text-xl font-bold">
+							Cultura Saint-Aunès - Liste des inscrits
+						</h2>
+						<p
+							id="printEventName"
+							class="text-sm font-semibold text-slate-600"
+						></p>
+					</div>
+					<div id="adminResListContent"></div>
+				</div>
+
+				<div
+					class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center no-print"
+				>
+					<button
+						onclick="imprimerListe()"
+						class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition shadow flex items-center gap-2"
+					>
+						🖨 Imprimer la fiche
+					</button>
+					<button
+						onclick="fermerAdminResModal()"
+						class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-lg transition"
+					>
+						Fermer
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Pied de page -->
+		<!-- FOOTER CULTURA SAINT-AUNÈS -->
+		<footer class="bg-[#00447F] text-gray-100 pt-5 pb-5 border-t-4">
+			<div
+				class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8 items-center text-center md:text-left"
+			>
+				<!-- Bloc 1 : Infos / Marque -->
+				<div>
+					<h3
+						class="font-['Poppins'] text-white font-bold text-lg mb-2"
+					>
+						Cultura Saint-Aunès
+					</h3>
+					<p class="text-sm text-white-500">
+						<i class="fa-solid fa-location-dot"></i> Ecoparc St
+						Aunès
+					</p>
+					<p class="text-xs text-white-500 mt-1">
+						<i class="fa-solid fa-phone"></i> 04 67 40 75 80
+					</p>
+				</div>
+
+				<!-- Bloc 2 : Réseau Social (Facebook) -->
+				<div class="flex flex-col items-center justify-center">
+					<p class="text-sm font-medium text-white mb-3">
+						Suivez toute notre actualité !
+					</p>
+
+					<a
+						href="https://www.facebook.com/magasinculturasaintaunes/photos/"
+						target="_blank"
+						class="inline-flex items-center gap-2 bg-[#1877F2] text-white px-5 py-2.5 rounded-full font-medium"
+					>
+						<!-- Icône Facebook propre et vectorielle grâce à Font Awesome -->
+						<i class="fa-brands fa-facebook"></i>
+						Rejoignez-nous sur Facebook
+					</a>
+				</div>
+
+				<!-- Bloc 3 : Mentions RGPD & Infos légales -->
+				<div class="text-xs text-gray-300 md:text-right space-y-1">
+					<p class="font-['Poppins'] text-gray-200 font-semibold">
+						Conformité RGPD
+					</p>
+					<p>
+						Les données collectées lors de vos réservations sont
+						utilisées exclusivement pour la gestion de l'événement
+						et ne sont jamais partagées.
+					</p>
+					<p class="font-['Poppins'] pt-2 text-gray-200">
+						© 2026 Cultura Saint-Aunès - Tous droits réservés.
+					</p>
+				</div>
+			</div>
+		</footer>
+
+		<script>
+			// CONFIGURATION SUPABASE
+			const SUPABASE_URL = "https://houeubtytanbppotwaey.supabase.co";
+			const SUPABASE_ANON_KEY =
+				"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhvdWV1YnR5dGFuYnBwb3R3YWV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMzUyOTksImV4cCI6MjEwNjYxMTI5OX0.JJE3UExQuhPLVjrnwkKD6nTNp_9uip2kz6ASjlIG-FY";
+
+			const supabaseClient = window.supabase.createClient(
+				SUPABASE_URL,
+				SUPABASE_ANON_KEY,
+			);
+			const animation_url =
+				"https://houeubtytanbppotwaey.supabase.co/storage/v1/object/public/CulturaSaintAunes-images/animation.jpg";
+			const dedicace_url =
+				"https://houeubtytanbppotwaey.supabase.co/storage/v1/object/public/CulturaSaintAunes-images/dedicace.jpg";
+			const loisir_creatif_url =
+				"https://houeubtytanbppotwaey.supabase.co/storage/v1/object/public/CulturaSaintAunes-images/loisir_creatif.jpg";
+
+			let events = [];
+			let reservations = {};
+			let isAdminLoggedIn =
+				sessionStorage.getItem("cultura_admin_logged") === "true";
+
+			async function chargerDonnees() {
+				try {
+					const { data: evData, error: evError } =
+						await supabaseClient
+							.from("events")
+							.select("*")
+							.order("raw_date", { ascending: true });
+					if (evError) throw evError;
+
+					events = evData.map((e) => ({
+						id: e.id,
+						title: e.title,
+						category: e.category,
+						rawDate: e.raw_date,
+						time: e.time,
+						description: e.description,
+						maxPlaces: e.max_places,
+						image: e.image,
+						askAge: e.ask_age,
+					}));
+
+					const { data: resData, error: resError } =
+						await supabaseClient.from("reservations").select("*");
+					if (resError) throw resError;
+
+					reservations = {};
+					resData.forEach((r) => {
+						if (!reservations[r.event_id]) {
+							reservations[r.event_id] = [];
+						}
+						reservations[r.event_id].push({
+							id: r.id,
+							nom: r.nom,
+							prenom: r.prenom,
+							email: r.email,
+							telephone: r.telephone,
+							age: r.age,
+						});
+					});
+				} catch (err) {
+					console.error("Erreur de chargement Supabase :", err);
+				}
+			}
+
+			function getCategoryStyles(cat) {
+				if (cat === "loisir créatif") {
+					return {
+						label: "Loisir Créatif",
+						badgeColor:
+							"bg-amber-100 text-amber-800 border-amber-200",
+						img_url: loisir_creatif_url,
+					};
+				} else if (cat === "dédicace") {
+					return {
+						label: "Dédicace",
+						badgeColor:
+							"bg-purple-100 text-purple-800 border-purple-200",
+						img_url: dedicace_url,
+					};
+				} else {
+					return {
+						label: "Animation",
+						badgeColor: "bg-sky-100 text-sky-800 border-sky-200",
+						img_url: animation_url,
+					};
+				}
+			}
+
+			function getPlacesPrises(eventId) {
+				return reservations[eventId] ? reservations[eventId].length : 0;
+			}
+
+			function formaterDateHeure(dateString, timeString) {
+				if (!dateString) return "Date à venir";
+				const options = {
+					weekday: "long",
+					year: "numeric",
+					month: "long",
+					day: "numeric",
+				};
+				const date = new Date(dateString);
+				const dateFormatee = date.toLocaleDateString("fr-FR", options);
+				return timeString
+					? `${dateFormatee} à ${timeString}`
+					: dateFormatee;
+			}
+
+			function creerCarteEvenement(ev) {
+				const prises = getPlacesPrises(ev.id);
+				const restantes = ev.maxPlaces - prises;
+				const isComplet = restantes <= 0;
+				const styles = getCategoryStyles(ev.category);
+				const dateAffichage = formaterDateHeure(ev.rawDate, ev.time);
+				const imageUrl = ev.image || styles.img_url;
+				const buttonText = isComplet
+					? "Victime de son succès"
+					: "Réserver une place";
+
+				const buttonClass = isComplet
+					? "w-full bg-gray-200 border-2 border-red-200 font-['Poppins'] text-red-600 font-bold py-2.5 rounded-xl text-base transition-colors duration-200 shadow-sm flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed"
+					: "w-full bg-white border-2 border-[#034475] font-['Poppins'] text-[#034475] group-hover:bg-[#034475] group-hover:text-white font-bold py-2.5 rounded-xl text-base transition-colors duration-200 shadow-sm flex items-center justify-center gap-1.5";
+
+				return `
+                    <div onclick="ouvrirModal('${ev.id}')" class="group min-w-[300px] sm:min-w-[320px] w-[320px] h-[500px] bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-slate-200 overflow-hidden flex flex-col justify-between group flex-shrink-0">
+                        <div class="relative h-44 w-full overflow-hidden bg-slate-200">
+                            <img src="${imageUrl}" alt="${ev.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            <span class="absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-white/90 backdrop-blur-sm border ${styles.badgeColor} shadow-sm">
+                                ${styles.label}
+                            </span>
+							<span class="absolute top-3 right-3 text-xs font-bold ${isComplet ? "text-red-500 bg-red-50" : "text-emerald-600 bg-emerald-50"} px-3 py-1 rounded-full uppercase">${isComplet ? "Complet" : restantes + " places restantes"}</span>
+                        </div>
+                        <div class="p-5 flex-grow flex flex-col justify-between space-y-3">
+                            <div>
+                                <h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] leading-[19.2px] tracking-[0px] group-hover:text-[#034475] transition leading-snug line-clamp-2 mb-5">${ev.title}</h3>
+								<div class="flex justify-between items-center mb-5">
+                                    <span class="font-['Poppins'] text-base font-semibold text-[#1877F2]"><i class="fa-solid fa-calendar-days"></i> ${dateAffichage}</span>
+                                </div>
+                                <p class="font-['Poppins'] text-[14px] text-[#1C2D55] leading-[21px] line-clamp-6 mt-1">${ev.description}</p>
+                            </div>
+                            <div class="pt-3 border-t border-slate-100 space-y-2.5">
+                            	
+                                <button type="button" class="${buttonClass}">
+								${buttonText}<span class="group-hover:translate-x-0.5 transition-transform"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+			}
+
+			window.addEventListener("hashchange", router);
+			window.addEventListener("load", async () => {
+				await chargerDonnees();
+				router();
+			});
+
+			async function router() {
+				const hash = window.location.hash;
+				const headerActions = document.getElementById("headerActions");
+				const main = document.getElementById("mainContainer");
+
+				if (hash === "#admin") {
+					if (!isAdminLoggedIn) {
+						headerActions.innerHTML = `<a href="#" class="text-xs text-blue-200 hover:text-white"><i class="fa-solid fa-right-from-bracket"></i> Exit</a>`;
+						renderLoginView(main);
+					} else {
+						headerActions.innerHTML = `<button onclick="logoutAdmin()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</button>`;
+						renderAdminDashboard(main);
+					}
+				} else if (hash === "#admin/create") {
+					if (!isAdminLoggedIn) {
+						window.location.hash = "#admin";
+						return;
+					}
+					headerActions.innerHTML = `<button onclick="window.location.hash='#admin'" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition">← Retour au tableau de bord</button>`;
+					renderCreateEventView(main);
+				} else if (hash.startsWith("#admin/edit/")) {
+					if (!isAdminLoggedIn) {
+						window.location.hash = "#admin";
+						return;
+					}
+					const eventId = hash.replace("#admin/edit/", "");
+					headerActions.innerHTML = `<button onclick="window.location.hash='#admin/manage'" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition">← Retour à la gestion</button>`;
+					renderEditEventView(main, eventId);
+				} else if (hash === "#admin/manage") {
+					if (!isAdminLoggedIn) {
+						window.location.hash = "#admin";
+						return;
+					}
+					headerActions.innerHTML = `<button onclick="window.location.hash='#admin'" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition">← Retour au tableau de bord</button>`;
+					renderManageEventsView(main);
+				} else {
+					headerActions.innerHTML = `<a href="#admin" class="font-['Poppins'] text-xs font-bold text-[#00447F] hover:text-[#00447F] bg-[#00447F] px-3 py-2 rounded-lg transition border border-[#00447F]">Espace Collaborateur</a>`;
+					renderClientView(main);
+				}
+			}
+
+			function renderClientView(container) {
+				container.innerHTML = `
+                    <div class="max-w-6xl mx-auto pl-0 pr-6 mb-10 flex flex-col md:flex-row md:items-end justify-between">
+                        <div>
+                            <span class="text-base font-normal font-['Poppins'] tracking-normal text-[#00417A]"><i class="fa-regular fa-heart"></i>     Partageons nos passions</span>
+                            <h2 class="text-[40px] font-extrabold text-[#00417A] mt-1">Vibrez avec nos événements</h2>
+                        </div>
+                    </div>
+                    <div class="relative w-full">
+                        <div id="clientEventsScrollContainer" class="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth py-2 pl-6 md:pl-[max(1.5rem,calc((100vw-72rem)/2))] pr-6"></div>
+                        <div class="flex justify-center items-center gap-3 mt-6">
+                            <button onclick="defilerCarrousel('gauche')" class="w-10 h-10 rounded-full border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-700 shadow-sm transition active:scale-95 font-bold">←</button>
+                            <button onclick="defilerCarrousel('droite')" class="w-10 h-10 rounded-full border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-700 shadow-sm transition active:scale-95 font-bold">→</button>
+                        </div>
+                    </div>
+                `;
+				renderClientEventsGrid();
+			}
+
+			function defilerCarrousel(direction) {
+				const container = document.getElementById(
+					"clientEventsScrollContainer",
+				);
+				if (!container) return;
+				const scrollAmount = 344;
+				container.scrollBy({
+					left: direction === "gauche" ? -scrollAmount : scrollAmount,
+					behavior: "smooth",
+				});
+			}
+
+			function renderClientEventsGrid() {
+				const grid = document.getElementById(
+					"clientEventsScrollContainer",
+				);
+				if (!grid) return;
+				grid.innerHTML = "";
+				events.forEach((ev) => {
+					grid.innerHTML += creerCarteEvenement(ev);
+				});
+			}
+
+			function renderLoginView(container) {
+				container.innerHTML = `
+                    <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 my-12 px-4 pb-6">
+                        <div class="bg-[#034475] p-6 text-white text-center -mx-4 -mt-4 mb-4">
+                            <h2 class="text-xl font-bold">Espace Collaborateur</h2>
+                            <p class="text-xs text-blue-200 mt-1">Connexion sécurisée Cultura Saint-Aunès</p>
+                        </div>
+                        <form onsubmit="handleLogin(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Identifiant</label>
+                                <input type="text" id="loginUser" required placeholder="admin" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Mot de passe</label>
+                                <input type="password" id="loginPass" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div id="loginError" class="text-xs text-red-500 font-semibold hidden">Identifiant ou mot de passe incorrect.</div>
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition shadow-md">Se connecter</button>
+                        </form>
+                    </div>
+                `;
+			}
+
+			async function handleLogin(e) {
+				e.preventDefault();
+
+				// Récupération des valeurs du formulaire
+				const email = document.getElementById("loginUser").value.trim();
+				const password = document
+					.getElementById("loginPass")
+					.value.trim();
+
+				// Appel à l'authentification sécurisée Supabase
+				const { data, error } =
+					await supabaseClient.auth.signInWithPassword({
+						email: email,
+						password: password,
+					});
+
+				if (error) {
+					// Si l'authentification échoue, on affiche le message d'erreur
+					document
+						.getElementById("loginError")
+						.classList.remove("hidden");
+					console.error("Erreur de connexion :", error.message);
+					return;
+				}
+
+				// Si c'est un succès :
+				isAdminLoggedIn = true;
+				sessionStorage.setItem("cultura_admin_logged", "true");
+
+				// Cache l'erreur si elle était affichée
+				document.getElementById("loginError").classList.add("hidden");
+
+				// Redirection vers l'espace admin et rafraîchissement du routeur
+				window.location.hash = "#admin";
+				router();
+			}
+
+			function logoutAdmin() {
+				isAdminLoggedIn = false;
+				sessionStorage.removeItem("cultura_admin_logged");
+				window.location.hash = "";
+				router();
+			}
+
+			function renderAdminDashboard(container) {
+				container.innerHTML = `
+                    <div class="max-w-6xl mx-auto px-6">
+                        <div class="mb-10 text-center md:text-center">
+                            <h2 class="font-['Poppins'] text-4xl font-extrabold text-[#00447F]">Tableau de bord Administrateur</h2>
+                            <p class="text-sm text-slate-600 mt-1">Choisissez une action ci-dessous pour gérer l'agenda du magasin.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+                            <div onclick="window.location.hash='#admin/create'" class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer border border-blue-100 flex flex-col items-center text-center group">
+                                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-circle-plus"></i></div>
+                                <h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] group-hover:text-blue-600 transition">Créer un événement</h3>
+                                <p class="text-xs text-slate-500 mt-2">Ajoutez une nouvelle animation, un loisir créatif ou une dédicace.</p>
+                            </div>
+                            <div onclick="window.location.hash='#admin/manage'" class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer border border-purple-100 flex flex-col items-center text-center group">
+                                <div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-list-check"></i></div>
+                                <h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] group-hover:text-purple-600 transition">Gérer les événements & Inscrits</h3>
+                                <p class="text-xs text-slate-500 mt-2">Modifiez les fiches, consultez les listes d'émargement et gérez les annulations.</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+			}
+
+			function renderCreateEventView(container) {
+				const nextWeek = new Date();
+				nextWeek.setDate(nextWeek.getDate() + 7);
+				const defaultDateStr = nextWeek.toISOString().split("T")[0];
+
+				container.innerHTML = `
+                    <div class="max-w-4xl mx-auto px-6">
+                        <div class="mb-6">
+                            <h2 class="font-['Poppins'] text-2xl font-extrabold text-[#00447F]">Créer un nouvel événement</h2>
+                            <p class="text-xs text-slate-600">Remplissez les informations ci-dessous.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start bg-white p-6 rounded-2xl shadow-md border border-slate-200">
+                            <form id="newEventQueueForm" onsubmit="ajouterEvenement(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Titre</label>
+                                    <input type="text" id="newTitle" oninput="updatePreview()" required placeholder="Ex: Atelier Peinture" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Catégorie</label>
+                                    <select id="newCategory" onchange="updatePreview()" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                        <option value="animation">Animation</option>
+                                        <option value="loisir créatif">Loisir créatif</option>
+                                        <option value="dédicace">Dédicace</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Date</label>
+                                        <input type="date" id="newDate" onchange="updatePreview()" value="${defaultDateStr}" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Heure</label>
+                                        <input type="time" id="newTime" onchange="updatePreview()" value="15:00" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Places max</label>
+                                        <input type="number" id="newMaxPlaces" oninput="updatePreview()" value="10" min="1" max="100" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Description</label>
+                                    <textarea id="newDesc" oninput="updatePreview()" rows="3" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Lien de l'image</label>
+                                    <input type="url" id="newImage" oninput="updatePreview()" placeholder="https://images.unsplash.com/..." class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
+                                </div>
+                                <div class="flex items-center gap-2 pt-2">
+                                    <input type="checkbox" id="newAskAge" class="w-4 h-4 text-blue-600 rounded border-slate-300">
+                                    <label for="newAskAge" class="text-xs font-bold text-slate-700">Demander l'âge des participants</label>
+                                </div>
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition shadow-md mt-4">Publier l'événement</button>
+                            </form>
+                            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col items-center justify-center">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Aperçu en direct</span>
+                                <div id="cardPreviewContainer" class="w-full flex justify-center"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+				updatePreview();
+			}
+
+			function updatePreview() {
+				const dummyEv = {
+					id: "preview",
+					title:
+						document.getElementById("newTitle").value ||
+						"Titre de l'événement",
+					category: document.getElementById("newCategory").value,
+					rawDate: document.getElementById("newDate").value,
+					time: document.getElementById("newTime").value,
+					maxPlaces:
+						parseInt(
+							document.getElementById("newMaxPlaces").value,
+						) || 10,
+					description:
+						document.getElementById("newDesc").value ||
+						"Description...",
+					image: document.getElementById("newImage").value,
+				};
+				document.getElementById("cardPreviewContainer").innerHTML =
+					creerCarteEvenement(dummyEv);
+			}
+
+			async function ajouterEvenement(e) {
+				e.preventDefault();
+
+				// On récupère et on nettoie la catégorie (minuscules, suppression des espaces)
+				const rawCategory = document
+					.getElementById("newCategory")
+					.value.trim()
+					.toLowerCase();
+				const customImage = document
+					.getElementById("newImage")
+					.value.trim();
+
+				// Détermination de l'image par défaut selon la catégorie
+				let defaultImage = animation_url; // Valeur de secours par défaut
+
+				if (
+					rawCategory.includes("dedicace") ||
+					rawCategory.includes("dédicace")
+				) {
+					defaultImage = dedicace_url;
+				} else if (
+					rawCategory.includes("loisir") ||
+					rawCategory.includes("creatif") ||
+					rawCategory.includes("créatif")
+				) {
+					defaultImage = loisir_creatif_url;
+				} else {
+					defaultImage = animation_url;
+				}
+
+				const newEv = {
+					id: "ev-" + Date.now(),
+					title: document.getElementById("newTitle").value,
+					category: document.getElementById("newCategory").value,
+					raw_date: document.getElementById("newDate").value,
+					time: document.getElementById("newTime").value,
+					max_places:
+						parseInt(
+							document.getElementById("newMaxPlaces").value,
+						) || 10,
+					description: document.getElementById("newDesc").value,
+					image: customImage !== "" ? customImage : defaultImage,
+					ask_age: document.getElementById("newAskAge").checked,
+				};
+
+				const { error } = await supabaseClient
+					.from("events")
+					.insert([newEv]);
+				if (error) {
+					alert("Erreur lors de l'enregistrement : " + error.message);
+					return;
+				}
+				await chargerDonnees();
+				window.location.hash = "#admin/manage";
+			}
+
+			function renderEditEventView(container, eventId) {
+				const ev = events.find((e) => e.id === eventId);
+				if (!ev) {
+					window.location.hash = "#admin/manage";
+					return;
+				}
+
+				container.innerHTML = `
+                    <div class="max-w-2xl mx-auto px-6 bg-white p-8 rounded-2xl shadow-md border border-slate-200">
+                        <div class="mb-6"><h2 class="text-2xl font-extrabold text-slate-900">Modifier l'événement</h2></div>
+                        <form onsubmit="sauvegarderModification(event, '${ev.id}')" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Titre</label>
+                                <input type="text" id="editTitle" value="${ev.title}" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Catégorie</label>
+                                <select id="editCategory" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
+                                    <option value="animation" ${ev.category === "animation" ? "selected" : ""}>Animation</option>
+                                    <option value="loisir créatif" ${ev.category === "loisir créatif" ? "selected" : ""}>Loisir créatif</option>
+                                    <option value="dédicace" ${ev.category === "dédicace" ? "selected" : ""}>Dédicace</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Date</label><input type="date" id="editDate" value="${ev.rawDate}" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></div>
+                                <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Heure</label><input type="time" id="editTime" value="${ev.time || "15:00"}" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></div>
+                                <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Places max</label><input type="number" id="editMaxPlaces" value="${ev.maxPlaces}" min="1" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></div>
+                            </div>
+                            <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Description</label><textarea id="editDesc" rows="3" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">${ev.description}</textarea></div>
+                            <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Lien de l'image</label><input type="url" id="editImage" value="${ev.image || ""}" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></div>
+                            <div class="flex items-center gap-2 pt-2">
+                                <input type="checkbox" id="editAskAge" ${ev.askAge ? "checked" : ""} class="w-4 h-4 text-blue-600 rounded border-slate-300">
+                                <label for="editAskAge" class="text-xs font-bold text-slate-700">Demander l'âge des participants</label>
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition shadow-md mt-4">Enregistrer</button>
+                        </form>
+                    </div>
+                `;
+			}
+
+			async function sauvegarderModification(e, eventId) {
+				e.preventDefault();
+				const updated = {
+					title: document.getElementById("editTitle").value,
+					category: document.getElementById("editCategory").value,
+					raw_date: document.getElementById("editDate").value,
+					time: document.getElementById("editTime").value,
+					max_places:
+						parseInt(
+							document.getElementById("editMaxPlaces").value,
+						) || 10,
+					description: document.getElementById("editDesc").value,
+					image: document.getElementById("editImage").value,
+					ask_age: document.getElementById("editAskAge").checked,
+				};
+
+				const { error } = await supabaseClient
+					.from("events")
+					.update(updated)
+					.eq("id", eventId);
+				if (error) {
+					alert("Erreur : " + error.message);
+					return;
+				}
+				await chargerDonnees();
+				window.location.hash = "#admin/manage";
+			}
+
+			function renderManageEventsView(container) {
+				container.innerHTML = `
+                    <div class="max-w-5xl mx-auto px-6">
+                        <div class="mb-6 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-extrabold text-slate-900">Gestion des événements</h2>
+                                <p class="text-xs text-slate-600">Modifiez, visualisez les inscrits ou supprimez des sessions.</p>
+                            </div>
+                            <button onclick="window.location.hash='#admin/create'" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow">+ Ajouter</button>
+                        </div>
+                        <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 uppercase text-[10px]">
+                                        <th class="py-3 px-4">Événement</th>
+                                        <th class="py-3 px-4">Date & Heure</th>
+                                        <th class="py-3 px-4">Inscrits / Max</th>
+                                        <th class="py-3 px-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="manageTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+				renderManageTable();
+			}
+
+			function renderManageTable() {
+				const tbody = document.getElementById("manageTableBody");
+				if (!tbody) return;
+				tbody.innerHTML = "";
+				if (events.length === 0) {
+					tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400">Aucun événement.</td></tr>`;
+					return;
+				}
+				events.forEach((ev) => {
+					const prises = getPlacesPrises(ev.id);
+					const styles = getCategoryStyles(ev.category);
+					tbody.innerHTML += `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50">
+                            <td class="py-3 px-4"><div class="font-bold text-slate-900">${ev.title}</div><span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${styles.badgeColor}">${styles.label}</span></td>
+                            <td class="py-3 px-4 text-slate-600 font-medium">${formaterDateHeure(ev.rawDate, ev.time)}</td>
+                            <td class="py-3 px-4 font-bold text-slate-700">${prises} / ${ev.maxPlaces} places</td>
+                            <td class="py-3 px-4 text-right space-x-1">
+                                <button onclick="window.location.hash='#admin/edit/${ev.id}'" class="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold px-2.5 py-1.5 rounded">✏ Modifier</button>
+                                <button onclick="ouvrirAdminResModal('${ev.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold px-2.5 py-1.5 rounded">👥 Inscrits</button>
+                                <button onclick="supprimerEvenement('${ev.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 font-bold px-2.5 py-1.5 rounded">🗑 Supprimer</button>
+                            </td>
+                        </tr>
+                    `;
+				});
+			}
+
+			async function supprimerEvenement(eventId) {
+				if (confirm("Voulez-vous vraiment supprimer cet événement ?")) {
+					const { error } = await supabaseClient
+						.from("events")
+						.delete()
+						.eq("id", eventId);
+					if (error) {
+						alert("Erreur : " + error.message);
+						return;
+					}
+					await chargerDonnees();
+					renderManageTable();
+				}
+			}
+
+			function ouvrirAdminResModal(eventId) {
+				const ev = events.find((e) => e.id === eventId);
+				const list = reservations[eventId] || [];
+
+				document.getElementById("adminResTitle").innerText =
+					`Inscrits : ${ev.title}`;
+				document.getElementById("adminResSub").innerText =
+					`${list.length} participant(s) sur ${ev.maxPlaces} places`;
+				document.getElementById("printEventName").innerText =
+					`${ev.title} - ${formaterDateHeure(ev.rawDate, ev.time)}`;
+
+				const content = document.getElementById("adminResListContent");
+				if (list.length === 0) {
+					content.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">Aucune réservation.</p>`;
+				} else {
+					let html = `<table class="w-full text-left border-collapse text-xs"><thead><tr class="border-b border-slate-200 text-slate-400 uppercase text-[10px]"><th class="py-2 px-2">#</th><th class="py-2 px-2">Nom & Prénom</th><th class="py-2 px-2">E-mail</th><th class="py-2 px-2">Téléphone</th>${ev.askAge ? '<th class="py-2 px-2">Âge</th>' : ""}<th class="py-2 px-2 text-right no-print">Action</th></tr></thead><tbody>`;
+					list.forEach((item, index) => {
+						html += `
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="py-2.5 px-2 font-bold text-slate-400">${index + 1}</td>
+                                <td class="py-2.5 px-2 font-semibold text-slate-800">${item.nom} ${item.prenom}</td>
+                                <td class="py-2.5 px-2 text-blue-600 underline"><a href="mailto:${item.email}">${item.email}</a></td>
+                                <td class="py-2.5 px-2 text-slate-600">${item.telephone}</td>
+                                ${ev.askAge ? `<td class="py-2.5 px-2 text-slate-600 font-medium">${item.age ? item.age + " ans" : "-"}</td>` : ""}
+                                <td class="py-2.5 px-2 text-right no-print">
+                                    <button onclick="annulerReservation('${item.id}', '${eventId}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 rounded">Annuler</button>
+                                </td>
+                            </tr>
+                        `;
+					});
+					html += `</tbody></table>`;
+					content.innerHTML = html;
+				}
+				document
+					.getElementById("adminReservationsModal")
+					.classList.remove("hidden");
+			}
+
+			function fermerAdminResModal() {
+				document
+					.getElementById("adminReservationsModal")
+					.classList.add("hidden");
+				if (window.location.hash === "#admin/manage")
+					renderManageTable();
+			}
+
+			async function annulerReservation(resId, eventId) {
+				if (
+					confirm("Voulez-vous vraiment annuler cette réservation ?")
+				) {
+					const { error } = await supabaseClient
+						.from("reservations")
+						.delete()
+						.eq("id", resId);
+					if (error) {
+						alert("Erreur : " + error.message);
+						return;
+					}
+					await chargerDonnees();
+					ouvrirAdminResModal(eventId);
+				}
+			}
+
+			function imprimerListe() {
+				window.print();
+			}
+
+			let currentActiveEventId = null;
+
+			function ouvrirModal(eventId) {
+				if (eventId === "preview") return;
+				currentActiveEventId = eventId;
+				const ev = events.find((e) => e.id === eventId);
+				const prises = getPlacesPrises(eventId);
+				const restantes = ev.maxPlaces - prises;
+				const styles = getCategoryStyles(ev.category);
+
+				document.getElementById("modalCategory").innerText =
+					styles.label;
+				document.getElementById("modalTitle").innerText = ev.title;
+				document.getElementById("modalDesc").innerText = ev.description;
+				document.getElementById("modalDate").innerText =
+					formaterDateHeure(ev.rawDate, ev.time);
+				document.getElementById("modalPlaces").innerText = restantes;
+				document.getElementById("modalMaxPlaces").innerText =
+					ev.maxPlaces;
+				document.getElementById("modalEventId").value = ev.id;
+
+				const ageContainer =
+					document.getElementById("ageFieldContainer");
+				if (ev.askAge) {
+					ageContainer.innerHTML = `
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Téléphone</label><input type="tel" id="telephone" required placeholder="06..." class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm"></div>
+                            <div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Âge</label><input type="number" id="age" required min="1" max="120" class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm"></div>
+                        </div>
+                    `;
+				} else {
+					ageContainer.innerHTML = `<div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Téléphone</label><input type="tel" id="telephone" required placeholder="06..." class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm"></div>`;
+				}
+
+				document.getElementById("reservationForm").reset();
+				document.getElementById("modalSuccess").classList.add("hidden");
+
+				if (restantes <= 0) {
+					document
+						.getElementById("modalFormContainer")
+						.classList.add("hidden");
+					document
+						.getElementById("modalComplet")
+						.classList.remove("hidden");
+				} else {
+					document
+						.getElementById("modalFormContainer")
+						.classList.remove("hidden");
+					document
+						.getElementById("modalComplet")
+						.classList.add("hidden");
+				}
+				document
+					.getElementById("eventModal")
+					.classList.remove("hidden");
+			}
+
+			function fermerModal() {
+				document.getElementById("eventModal").classList.add("hidden");
+				if (window.location.hash === "") renderClientEventsGrid();
+			}
+
+			async function validerReservation(e) {
+				e.preventDefault();
+				const ev = events.find((e) => e.id === currentActiveEventId);
+				const prises = getPlacesPrises(currentActiveEventId);
+				if (prises >= ev.maxPlaces) return;
+
+				const newRes = {
+					event_id: currentActiveEventId,
+					nom: document.getElementById("nom").value,
+					prenom: document.getElementById("prenom").value,
+					email: document.getElementById("email").value,
+					telephone: document.getElementById("telephone").value,
+					age: ev.askAge
+						? parseInt(document.getElementById("age").value)
+						: null,
+				};
+
+				const { error } = await supabaseClient
+					.from("reservations")
+					.insert([newRes]);
+				if (error) {
+					alert("Erreur lors de la réservation : " + error.message);
+					return;
+				}
+
+				await chargerDonnees();
+
+				document.getElementById("successName").innerText =
+					newRes.prenom + " " + newRes.nom;
+				document
+					.getElementById("modalFormContainer")
+					.classList.add("hidden");
+				document
+					.getElementById("modalSuccess")
+					.classList.remove("hidden");
+
+				const nouvellesPrises = getPlacesPrises(currentActiveEventId);
+				document.getElementById("modalPlaces").innerText =
+					ev.maxPlaces - nouvellesPrises;
+			}
+		</script>
+	</body>
+</html>
