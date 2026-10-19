@@ -18,7 +18,7 @@ let events = [];
 let reservations = {};
 let isAdminLoggedIn = sessionStorage.getItem("cultura_admin_logged") === "true";
 
-async function chargerDonnees() {
+async function loadData() {
 	try {
 		const { data: evData, error: evError } = await supabaseClient
 			.from("events")
@@ -55,10 +55,11 @@ async function chargerDonnees() {
 				email: r.email,
 				telephone: r.telephone,
 				age: r.age,
+				placesCount: r.places_count || 1, // Récupération du nombre de places réservées
 			});
 		});
 	} catch (err) {
-		console.error("Erreur de chargement Supabase :", err);
+		console.error("Supabase loading error :", err);
 	}
 }
 
@@ -84,11 +85,16 @@ function getCategoryStyles(cat) {
 	}
 }
 
-function getPlacesPrises(eventId) {
-	return reservations[eventId] ? reservations[eventId].length : 0;
+// Additionne le total des places prises pour un événement donné
+function getTakenSeats(eventId) {
+	if (!reservations[eventId]) return 0;
+	return reservations[eventId].reduce(
+		(total, r) => total + (r.placesCount || 1),
+		0,
+	);
 }
 
-function formaterDateHeure(dateString, timeString) {
+function formatDateTime(dateString, timeString) {
 	if (!dateString) return "Date à venir";
 	const options = {
 		weekday: "long",
@@ -101,23 +107,26 @@ function formaterDateHeure(dateString, timeString) {
 	return timeString ? `${dateFormatee} à ${timeString}` : dateFormatee;
 }
 
-function creerCarteEvenement(ev) {
-	const prises = getPlacesPrises(ev.id);
+function createEventCard(ev) {
+	const prises = getTakenSeats(ev.id);
 	const restantes = ev.maxPlaces - prises;
 	const isComplet = restantes <= 0;
 	const styles = getCategoryStyles(ev.category);
-	const dateAffichage = formaterDateHeure(ev.rawDate, ev.time);
+	const dateAffichage = formatDateTime(ev.rawDate, ev.time);
 	const imageUrl = ev.image || styles.img_url;
 	const buttonText = isComplet
 		? "Victime de son succès"
 		: "Réserver une place";
+	console.log(
+		`[DEBUG] Événement : "${ev.title}" | Max : ${ev.maxPlaces} | Réservations (prises) : ${prises} | Restantes : ${restantes} | Complet ? : ${isComplet}`,
+	);
 
 	const buttonClass = isComplet
 		? "w-full bg-gray-200 border-2 border-red-200 font-['Poppins'] text-red-600 font-bold py-2.5 rounded-xl text-base transition-colors duration-200 shadow-sm flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed"
 		: "w-full bg-white border-2 border-[#034475] font-['Poppins'] text-[#034475] group-hover:bg-[#034475] group-hover:text-white font-bold py-2.5 rounded-xl text-base transition-colors duration-200 shadow-sm flex items-center justify-center gap-1.5";
 
 	return `
-                    <div onclick="ouvrirModal('${ev.id}')" class="group min-w-[300px] sm:min-w-[320px] w-[320px] h-[500px] bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-slate-200 overflow-hidden flex flex-col justify-between group flex-shrink-0">
+                    <div onclick="openModal('${ev.id}')" class="group min-w-[300px] sm:min-w-[320px] w-[320px] h-[500px] bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-slate-200 overflow-hidden flex flex-col justify-between group flex-shrink-0">
                         <div class="relative h-44 w-full overflow-hidden bg-slate-200">
                             <img src="${imageUrl}" alt="${ev.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                             <span class="absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-white/90 backdrop-blur-sm border ${styles.badgeColor} shadow-sm">
@@ -134,7 +143,6 @@ function creerCarteEvenement(ev) {
                                 <p class="font-['Poppins'] text-[14px] text-[#1C2D55] leading-[21px] line-clamp-6 mt-1">${ev.description}</p>
                             </div>
                             <div class="pt-3 border-t border-slate-100 space-y-2.5">
-                            	
                                 <button type="button" class="${buttonClass}">
 								${buttonText}<span class="group-hover:translate-x-0.5 transition-transform"></span>
                                 </button>
@@ -146,7 +154,7 @@ function creerCarteEvenement(ev) {
 
 window.addEventListener("hashchange", router);
 window.addEventListener("load", async () => {
-	await chargerDonnees();
+	await loadData();
 	router();
 });
 
@@ -202,15 +210,15 @@ function renderClientView(container) {
                     <div class="relative w-full">
                         <div id="clientEventsScrollContainer" class="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth py-2 pl-6 md:pl-[max(1.5rem,calc((100vw-72rem)/2))] pr-6"></div>
                         <div class="flex justify-center items-center gap-3 mt-6">
-                            <button onclick="defilerCarrousel('gauche')" class="w-10 h-10 rounded-full border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-700 shadow-sm transition active:scale-95 font-bold">←</button>
-                            <button onclick="defilerCarrousel('droite')" class="w-10 h-10 rounded-full border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-700 shadow-sm transition active:scale-95 font-bold">→</button>
+                            <button onclick="slideCarousel('gauche')" class="w-10 h-10 rounded-full border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-700 shadow-sm transition active:scale-95 font-bold">←</button>
+                            <button onclick="slideCarousel('droite')" class="w-10 h-10 rounded-full border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-700 shadow-sm transition active:scale-95 font-bold">→</button>
                         </div>
                     </div>
                 `;
 	renderClientEventsGrid();
 }
 
-function defilerCarrousel(direction) {
+function slideCarousel(direction) {
 	const container = document.getElementById("clientEventsScrollContainer");
 	if (!container) return;
 	const scrollAmount = 344;
@@ -225,7 +233,7 @@ function renderClientEventsGrid() {
 	if (!grid) return;
 	grid.innerHTML = "";
 	events.forEach((ev) => {
-		grid.innerHTML += creerCarteEvenement(ev);
+		grid.innerHTML += createEventCard(ev);
 	});
 }
 
@@ -254,32 +262,23 @@ function renderLoginView(container) {
 
 async function handleLogin(e) {
 	e.preventDefault();
-
-	// Récupération des valeurs du formulaire
 	const email = document.getElementById("loginUser").value.trim();
 	const password = document.getElementById("loginPass").value.trim();
 
-	// Appel à l'authentification sécurisée Supabase
 	const { data, error } = await supabaseClient.auth.signInWithPassword({
 		email: email,
 		password: password,
 	});
 
 	if (error) {
-		// Si l'authentification échoue, on affiche le message d'erreur
 		document.getElementById("loginError").classList.remove("hidden");
 		console.error("Erreur de connexion :", error.message);
 		return;
 	}
 
-	// Si c'est un succès :
 	isAdminLoggedIn = true;
 	sessionStorage.setItem("cultura_admin_logged", "true");
-
-	// Cache l'erreur si elle était affichée
 	document.getElementById("loginError").classList.add("hidden");
-
-	// Redirection vers l'espace admin et rafraîchissement du routeur
 	window.location.hash = "#admin";
 	router();
 }
@@ -326,7 +325,7 @@ function renderCreateEventView(container) {
                             <p class="text-xs text-slate-600">Remplissez les informations ci-dessous.</p>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start bg-white p-6 rounded-2xl shadow-md border border-slate-200">
-                            <form id="newEventQueueForm" onsubmit="ajouterEvenement(event)" class="space-y-4">
+                            <form id="newEventQueueForm" onsubmit="addEvent(event)" class="space-y-4">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Titre</label>
                                     <input type="text" id="newTitle" oninput="updatePreview()" required placeholder="Ex: Atelier Peinture" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -392,22 +391,18 @@ function updatePreview() {
 		image: document.getElementById("newImage").value,
 	};
 	document.getElementById("cardPreviewContainer").innerHTML =
-		creerCarteEvenement(dummyEv);
+		createEventCard(dummyEv);
 }
 
-async function ajouterEvenement(e) {
+async function addEvent(e) {
 	e.preventDefault();
-
-	// On récupère et on nettoie la catégorie (minuscules, suppression des espaces)
 	const rawCategory = document
 		.getElementById("newCategory")
 		.value.trim()
 		.toLowerCase();
 	const customImage = document.getElementById("newImage").value.trim();
 
-	// Détermination de l'image par défaut selon la catégorie
-	let defaultImage = animation_url; // Valeur de secours par défaut
-
+	let defaultImage = animation_url;
 	if (rawCategory.includes("dedicace") || rawCategory.includes("dédicace")) {
 		defaultImage = dedicace_url;
 	} else if (
@@ -416,8 +411,6 @@ async function ajouterEvenement(e) {
 		rawCategory.includes("créatif")
 	) {
 		defaultImage = loisir_creatif_url;
-	} else {
-		defaultImage = animation_url;
 	}
 
 	const newEv = {
@@ -438,7 +431,7 @@ async function ajouterEvenement(e) {
 		alert("Erreur lors de l'enregistrement : " + error.message);
 		return;
 	}
-	await chargerDonnees();
+	await loadData();
 	window.location.hash = "#admin/manage";
 }
 
@@ -452,7 +445,7 @@ function renderEditEventView(container, eventId) {
 	container.innerHTML = `
                     <div class="max-w-2xl mx-auto px-6 bg-white p-8 rounded-2xl shadow-md border border-slate-200">
                         <div class="mb-6"><h2 class="text-2xl font-extrabold text-slate-900">Modifier l'événement</h2></div>
-                        <form onsubmit="sauvegarderModification(event, '${ev.id}')" class="space-y-4">
+                        <form onsubmit="saveUpdate(event, '${ev.id}')" class="space-y-4">
                             <div>
                                 <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Titre</label>
                                 <input type="text" id="editTitle" value="${ev.title}" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
@@ -482,7 +475,7 @@ function renderEditEventView(container, eventId) {
                 `;
 }
 
-async function sauvegarderModification(e, eventId) {
+async function saveUpdate(e, eventId) {
 	e.preventDefault();
 	const updated = {
 		title: document.getElementById("editTitle").value,
@@ -504,7 +497,7 @@ async function sauvegarderModification(e, eventId) {
 		alert("Erreur : " + error.message);
 		return;
 	}
-	await chargerDonnees();
+	await loadData();
 	window.location.hash = "#admin/manage";
 }
 
@@ -545,24 +538,24 @@ function renderManageTable() {
 		return;
 	}
 	events.forEach((ev) => {
-		const prises = getPlacesPrises(ev.id);
+		const prises = getTakenSeats(ev.id);
 		const styles = getCategoryStyles(ev.category);
 		tbody.innerHTML += `
                         <tr class="border-b border-slate-100 hover:bg-slate-50">
                             <td class="py-3 px-4"><div class="font-bold text-slate-900">${ev.title}</div><span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${styles.badgeColor}">${styles.label}</span></td>
-                            <td class="py-3 px-4 text-slate-600 font-medium">${formaterDateHeure(ev.rawDate, ev.time)}</td>
+                            <td class="py-3 px-4 text-slate-600 font-medium">${formatDateTime(ev.rawDate, ev.time)}</td>
                             <td class="py-3 px-4 font-bold text-slate-700">${prises} / ${ev.maxPlaces} places</td>
                             <td class="py-3 px-4 text-right space-x-1">
                                 <button onclick="window.location.hash='#admin/edit/${ev.id}'" class="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold px-2.5 py-1.5 rounded">✏ Modifier</button>
-                                <button onclick="ouvrirAdminResModal('${ev.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold px-2.5 py-1.5 rounded">👥 Inscrits</button>
-                                <button onclick="supprimerEvenement('${ev.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 font-bold px-2.5 py-1.5 rounded">🗑 Supprimer</button>
+                                <button onclick="openAdminReservationsModal('${ev.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold px-2.5 py-1.5 rounded">👥 Inscrits</button>
+                                <button onclick="deleteEvent('${ev.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 font-bold px-2.5 py-1.5 rounded">🗑 Supprimer</button>
                             </td>
                         </tr>
                     `;
 	});
 }
 
-async function supprimerEvenement(eventId) {
+async function deleteEvent(eventId) {
 	if (confirm("Voulez-vous vraiment supprimer cet événement ?")) {
 		const { error } = await supabaseClient
 			.from("events")
@@ -572,27 +565,27 @@ async function supprimerEvenement(eventId) {
 			alert("Erreur : " + error.message);
 			return;
 		}
-		await chargerDonnees();
+		await loadData();
 		renderManageTable();
 	}
 }
 
-function ouvrirAdminResModal(eventId) {
+function openAdminReservationsModal(eventId) {
 	const ev = events.find((e) => e.id === eventId);
 	const list = reservations[eventId] || [];
 
 	document.getElementById("adminResTitle").innerText =
 		`Inscrits : ${ev.title}`;
 	document.getElementById("adminResSub").innerText =
-		`${list.length} participant(s) sur ${ev.maxPlaces} places`;
+		`${list.length} réservation(s) - ${getTakenSeats(eventId)} place(s) prise(s) sur ${ev.maxPlaces}`;
 	document.getElementById("printEventName").innerText =
-		`${ev.title} - ${formaterDateHeure(ev.rawDate, ev.time)}`;
+		`${ev.title} - ${formatDateTime(ev.rawDate, ev.time)}`;
 
 	const content = document.getElementById("adminResListContent");
 	if (list.length === 0) {
 		content.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">Aucune réservation.</p>`;
 	} else {
-		let html = `<table class="w-full text-left border-collapse text-xs"><thead><tr class="border-b border-slate-200 text-slate-400 uppercase text-[10px]"><th class="py-2 px-2">#</th><th class="py-2 px-2">Nom & Prénom</th><th class="py-2 px-2">E-mail</th><th class="py-2 px-2">Téléphone</th>${ev.askAge ? '<th class="py-2 px-2">Âge</th>' : ""}<th class="py-2 px-2 text-right no-print">Action</th></tr></thead><tbody>`;
+		let html = `<table class="w-full text-left border-collapse text-xs"><thead><tr class="border-b border-slate-200 text-slate-400 uppercase text-[10px]"><th class="py-2 px-2">#</th><th class="py-2 px-2">Nom & Prénom</th><th class="py-2 px-2">E-mail</th><th class="py-2 px-2">Téléphone</th><th class="py-2 px-2">Places</th>${ev.askAge ? '<th class="py-2 px-2">Âge</th>' : ""}<th class="py-2 px-2 text-right no-print">Action</th></tr></thead><tbody>`;
 		list.forEach((item, index) => {
 			html += `
                             <tr class="border-b border-slate-100 hover:bg-slate-50">
@@ -600,9 +593,10 @@ function ouvrirAdminResModal(eventId) {
                                 <td class="py-2.5 px-2 font-semibold text-slate-800">${item.nom} ${item.prenom}</td>
                                 <td class="py-2.5 px-2 text-blue-600 underline"><a href="mailto:${item.email}">${item.email}</a></td>
                                 <td class="py-2.5 px-2 text-slate-600">${item.telephone}</td>
+                                <td class="py-2.5 px-2 font-bold text-blue-600">${item.placesCount || 1} pl.</td>
                                 ${ev.askAge ? `<td class="py-2.5 px-2 text-slate-600 font-medium">${item.age ? item.age + " ans" : "-"}</td>` : ""}
                                 <td class="py-2.5 px-2 text-right no-print">
-                                    <button onclick="annulerReservation('${item.id}', '${eventId}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 rounded">Annuler</button>
+                                    <button onclick="cancelReservation('${item.id}', '${eventId}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 rounded">Annuler</button>
                                 </td>
                             </tr>
                         `;
@@ -615,12 +609,12 @@ function ouvrirAdminResModal(eventId) {
 		.classList.remove("hidden");
 }
 
-function fermerAdminResModal() {
+function closeAdminReservationsModal() {
 	document.getElementById("adminReservationsModal").classList.add("hidden");
 	if (window.location.hash === "#admin/manage") renderManageTable();
 }
 
-async function annulerReservation(resId, eventId) {
+async function cancelReservation(resId, eventId) {
 	if (confirm("Voulez-vous vraiment annuler cette réservation ?")) {
 		const { error } = await supabaseClient
 			.from("reservations")
@@ -630,29 +624,29 @@ async function annulerReservation(resId, eventId) {
 			alert("Erreur : " + error.message);
 			return;
 		}
-		await chargerDonnees();
-		ouvrirAdminResModal(eventId);
+		await loadData();
+		openAdminReservationsModal(eventId);
 	}
 }
 
-function imprimerListe() {
+function printList() {
 	window.print();
 }
 
 let currentActiveEventId = null;
 
-function ouvrirModal(eventId) {
+function openModal(eventId) {
 	if (eventId === "preview") return;
 	currentActiveEventId = eventId;
 	const ev = events.find((e) => e.id === eventId);
-	const prises = getPlacesPrises(eventId);
+	const prises = getTakenSeats(eventId);
 	const restantes = ev.maxPlaces - prises;
 	const styles = getCategoryStyles(ev.category);
 
 	document.getElementById("modalCategory").innerText = styles.label;
 	document.getElementById("modalTitle").innerText = ev.title;
 	document.getElementById("modalDesc").innerText = ev.description;
-	document.getElementById("modalDate").innerText = formaterDateHeure(
+	document.getElementById("modalDate").innerText = formatDateTime(
 		ev.rawDate,
 		ev.time,
 	);
@@ -660,16 +654,29 @@ function ouvrirModal(eventId) {
 	document.getElementById("modalMaxPlaces").innerText = ev.maxPlaces;
 	document.getElementById("modalEventId").value = ev.id;
 
+	// Génération des options du sélecteur de places (maximum 5 ou selon les places restantes)
+	const maxSelectable = Math.min(restantes, 5);
+	let optionsHtml = "";
+	for (let i = 1; i <= maxSelectable; i++) {
+		optionsHtml += `<option value="${i}">${i} place${i > 1 ? "s" : ""}</option>`;
+	}
+
 	const ageContainer = document.getElementById("ageFieldContainer");
 	if (ev.askAge) {
 		ageContainer.innerHTML = `
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-3 gap-2">
                             <div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Téléphone</label><input type="tel" id="telephone" required placeholder="06..." class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm"></div>
                             <div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Âge</label><input type="number" id="age" required min="1" max="120" class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm"></div>
+                            <div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Places</label><select id="placesCount" class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm">${optionsHtml}</select></div>
                         </div>
                     `;
 	} else {
-		ageContainer.innerHTML = `<div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Téléphone</label><input type="tel" id="telephone" required placeholder="06..." class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm"></div>`;
+		ageContainer.innerHTML = `
+			<div class="grid grid-cols-2 gap-3">
+				<div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Téléphone</label><input type="tel" id="telephone" required placeholder="06..." class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm"></div>
+				<div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Places</label><select id="placesCount" class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm">${optionsHtml}</select></div>
+			</div>
+		`;
 	}
 
 	document.getElementById("reservationForm").reset();
@@ -687,16 +694,22 @@ function ouvrirModal(eventId) {
 	document.getElementById("eventModal").classList.remove("hidden");
 }
 
-function fermerModal() {
+function closeModal() {
 	document.getElementById("eventModal").classList.add("hidden");
 	if (window.location.hash === "") renderClientEventsGrid();
 }
 
-async function validerReservation(e) {
+async function submitReservation(e) {
 	e.preventDefault();
 	const ev = events.find((e) => e.id === currentActiveEventId);
-	const prises = getPlacesPrises(currentActiveEventId);
-	if (prises >= ev.maxPlaces) return;
+	const prises = getTakenSeats(currentActiveEventId);
+	const requestedPlaces =
+		parseInt(document.getElementById("placesCount").value) || 1;
+
+	if (prises + requestedPlaces > ev.maxPlaces) {
+		alert("Désolé, il ne reste plus assez de places pour cette quantité.");
+		return;
+	}
 
 	const newRes = {
 		event_id: currentActiveEventId,
@@ -705,6 +718,7 @@ async function validerReservation(e) {
 		email: document.getElementById("email").value,
 		telephone: document.getElementById("telephone").value,
 		age: ev.askAge ? parseInt(document.getElementById("age").value) : null,
+		places_count: requestedPlaces,
 	};
 
 	const { error } = await supabaseClient
@@ -715,14 +729,14 @@ async function validerReservation(e) {
 		return;
 	}
 
-	await chargerDonnees();
+	await loadData();
 
 	document.getElementById("successName").innerText =
-		newRes.prenom + " " + newRes.nom;
+		newRes.prenom + " " + newRes.nom + ` (${requestedPlaces} places)`;
 	document.getElementById("modalFormContainer").classList.add("hidden");
 	document.getElementById("modalSuccess").classList.remove("hidden");
 
-	const nouvellesPrises = getPlacesPrises(currentActiveEventId);
+	const nouvellesPrises = getTakenSeats(currentActiveEventId);
 	document.getElementById("modalPlaces").innerText =
 		ev.maxPlaces - nouvellesPrises;
 }
