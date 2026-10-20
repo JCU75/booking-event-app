@@ -711,6 +711,7 @@ async function submitReservation(e) {
 		return;
 	}
 
+	// 1. Génération du code unique pour le ticket
 	const ticketCode = crypto.randomUUID();
 
 	const newRes = {
@@ -721,20 +722,42 @@ async function submitReservation(e) {
 		telephone: document.getElementById("telephone").value,
 		age: ev.askAge ? parseInt(document.getElementById("age").value) : null,
 		places_count: requestedPlaces,
-		ticketCode: ticketCode,
+		ticket_code: ticketCode,
 		checked_in: false,
 	};
 
+	// 2. Sauvegarde dans Supabase
 	const { error } = await supabaseClient
 		.from("reservations")
 		.insert([newRes]);
+
 	if (error) {
 		alert("Erreur lors de la réservation : " + error.message);
 		return;
 	}
 
+	// 3. Déclenchement de l'envoi de l'e-mail via l'API Vercel / Mailjet
+	try {
+		await fetch("/api/send-ticket", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				email: newRes.email,
+				nom: newRes.nom,
+				prenom: newRes.prenom,
+				eventTitle: ev.title,
+				eventDate: formatDateTime(ev.rawDate, ev.time),
+				placesCount: requestedPlaces,
+				ticketCode: ticketCode,
+			}),
+		});
+	} catch (mailError) {
+		console.error("Erreur d'envoi du mail :", mailError);
+	}
+
 	await loadData();
 
+	// 4. Affichage de la modale de succès
 	document.getElementById("successName").innerText =
 		newRes.prenom + " " + newRes.nom + ` (${requestedPlaces} places)`;
 	document.getElementById("modalFormContainer").classList.add("hidden");
