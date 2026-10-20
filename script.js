@@ -711,6 +711,8 @@ async function submitReservation(e) {
 		return;
 	}
 
+	const ticketCode = crypto.randomUUID();
+
 	const newRes = {
 		event_id: currentActiveEventId,
 		nom: document.getElementById("nom").value,
@@ -719,6 +721,8 @@ async function submitReservation(e) {
 		telephone: document.getElementById("telephone").value,
 		age: ev.askAge ? parseInt(document.getElementById("age").value) : null,
 		places_count: requestedPlaces,
+		ticketCode: ticketCode,
+		checked_in: false,
 	};
 
 	const { error } = await supabaseClient
