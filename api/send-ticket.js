@@ -3,6 +3,16 @@ export default async function handler(req, res) {
 		return res.status(405).json({ error: "Méthode non autorisée" });
 	}
 
+	const apiKey = process.env.MAILJET_API_KEY;
+	const secretKey = process.env.MAILJET_SECRET_KEY;
+
+	if (!apiKey || !secretKey) {
+		console.error("Clés Mailjet manquantes dans process.env");
+		return res
+			.status(500)
+			.json({ error: "Configuration Mailjet manquante sur le serveur" });
+	}
+
 	const {
 		email,
 		nom,
@@ -12,17 +22,6 @@ export default async function handler(req, res) {
 		placesCount,
 		ticketCode,
 	} = req.body;
-
-	const apiKey = process.env.MAILJET_API_KEY;
-	const secretKey = process.env.MAILJET_SECRET_KEY;
-
-	if (!apiKey || !secretKey) {
-		return res
-			.status(500)
-			.json({ error: "Configuration Mailjet manquante sur le serveur" });
-	}
-
-	// URL du QR code généré automatiquement via une API publique
 	const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticketCode}`;
 
 	const mailjetData = {
@@ -62,13 +61,15 @@ export default async function handler(req, res) {
 	};
 
 	try {
+		const credentials = Buffer.from(
+			`${apiKey.trim()}:${secretKey.trim()}`,
+		).toString("base64");
+
 		const response = await fetch("https://api.mailjet.com/v3.1/send", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization:
-					"Basic " +
-					Buffer.from(`${apiKey}:${secretKey}`).toString("base64"),
+				Authorization: "Basic " + credentials,
 			},
 			body: JSON.stringify(mailjetData),
 		});
@@ -76,11 +77,16 @@ export default async function handler(req, res) {
 		const result = await response.json();
 
 		if (!response.ok) {
+			console.error(
+				"Erreur renvoyée par Mailjet :",
+				JSON.stringify(result),
+			);
 			return res.status(response.status).json({ error: result });
 		}
 
 		return res.status(200).json({ success: true, result });
 	} catch (error) {
+		console.error("Erreur interne fetch Mailjet :", error.message);
 		return res.status(500).json({ error: error.message });
 	}
 }
