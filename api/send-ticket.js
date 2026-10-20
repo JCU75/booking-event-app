@@ -1,14 +1,8 @@
+import nodemailer from "nodemailer";
+
 export default async function handler(req, res) {
 	if (req.method !== "POST") {
 		return res.status(405).json({ error: "Méthode non autorisée" });
-	}
-
-	const apiKey = process.env.RESEND_API_KEY;
-
-	if (!apiKey) {
-		return res
-			.status(500)
-			.json({ error: "Configuration Resend manquante sur le serveur" });
 	}
 
 	const {
@@ -20,13 +14,30 @@ export default async function handler(req, res) {
 		placesCount,
 		ticketCode,
 	} = req.body;
+	const gmailPassword = process.env.GMAIL_APP_PASSWORD;
 
-	// Image QR Code générée dynamiquement à partir du ticketCode unique
+	if (!gmailPassword) {
+		return res
+			.status(500)
+			.json({
+				error: "Mot de passe d'application Gmail manquant sur le serveur",
+			});
+	}
+
+	// Configuration du serveur SMTP Gmail
+	const transporter = nodemailer.createTransport({
+		service: "gmail",
+		auth: {
+			user: "csaadmin34130@gmail.com",
+			pass: gmailPassword.replace(/\s+/g, ""), // Nettoie les espaces éventuels
+		},
+	});
+
 	const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticketCode}`;
 
-	const resendData = {
-		from: "Cultura Saint-Aunès <onboarding@resend.dev>", // Adresse d'envoi par défaut certifiée Resend
-		to: [email],
+	const mailOptions = {
+		from: '"Cultura Saint-Aunès" <csaadmin34130@gmail.com>',
+		to: email,
 		subject: `Votre ticket pour l'événement : ${eventTitle}`,
 		html: `
       <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
@@ -49,25 +60,10 @@ export default async function handler(req, res) {
 	};
 
 	try {
-		const response = await fetch("https://api.resend.com/emails", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${apiKey}`,
-			},
-			body: JSON.stringify(resendData),
-		});
-
-		const result = await response.json();
-
-		if (!response.ok) {
-			console.error("Erreur renvoyée par Resend :", result);
-			return res.status(response.status).json({ error: result });
-		}
-
-		return res.status(200).json({ success: true, result });
+		await transporter.sendMail(mailOptions);
+		return res.status(200).json({ success: true });
 	} catch (error) {
-		console.error("Erreur interne Resend :", error.message);
+		console.error("Erreur d'envoi Gmail :", error);
 		return res.status(500).json({ error: error.message });
 	}
 }
