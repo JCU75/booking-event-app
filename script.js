@@ -193,6 +193,13 @@ async function router() {
 		}
 		headerActions.innerHTML = `<button onclick="window.location.hash='#admin'" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition">← Retour au tableau de bord</button>`;
 		renderManageEventsView(main);
+	} else if (hash === "#admin/scan") {
+		if (!isAdminLoggedIn) {
+			window.location.hash = "#admin";
+			return;
+		}
+		headerActions.innerHTML = `<button onclick="window.location.hash='#admin'" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition">← Retour au tableau de bord</button>`;
+		renderScanView(main);
 	} else {
 		headerActions.innerHTML = `<a href="#admin" class="font-['Poppins'] text-xs font-bold text-[#00447F] hover:text-[#00447F] bg-[#00447F] px-3 py-2 rounded-lg transition border border-[#00447F]">Espace Collaborateur</a>`;
 		renderClientView(main);
@@ -292,25 +299,30 @@ function logoutAdmin() {
 
 function renderAdminDashboard(container) {
 	container.innerHTML = `
-                    <div class="max-w-6xl mx-auto px-6">
-                        <div class="mb-10 text-center md:text-center">
-                            <h2 class="font-['Poppins'] text-4xl font-extrabold text-[#00447F]">Tableau de bord Administrateur</h2>
-                            <p class="text-sm text-slate-600 mt-1">Choisissez une action ci-dessous pour gérer l'agenda du magasin.</p>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-                            <div onclick="window.location.hash='#admin/create'" class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer border border-blue-100 flex flex-col items-center text-center group">
-                                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-circle-plus"></i></div>
-                                <h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] group-hover:text-blue-600 transition">Créer un événement</h3>
-                                <p class="text-xs text-slate-500 mt-2">Ajoutez une nouvelle animation, un loisir créatif ou une dédicace.</p>
-                            </div>
-                            <div onclick="window.location.hash='#admin/manage'" class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer border border-purple-100 flex flex-col items-center text-center group">
-                                <div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-list-check"></i></div>
-                                <h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] group-hover:text-purple-600 transition">Gérer les événements & Inscrits</h3>
-                                <p class="text-xs text-slate-500 mt-2">Modifiez les fiches, consultez les listes d'émargement et gérez les annulations.</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="mb-10 text-center md:text-center">
+                <h2 class="font-['Poppins'] text-4xl font-extrabold text-[#00447F]">Tableau de bord Administrateur</h2>
+                <p class="text-sm text-slate-600 mt-1">Choisissez une action ci-dessous pour gérer l'agenda du magasin.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                <div onclick="window.location.hash='#admin/create'" class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer border border-blue-100 flex flex-col items-center text-center group">
+                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-circle-plus"></i></div>
+                    <h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] group-hover:text-blue-600 transition">Créer un événement</h3>
+                    <p class="text-xs text-slate-500 mt-2">Ajoutez une nouvelle animation, un loisir créatif ou une dédicace.</p>
+                </div>
+                <div onclick="window.location.hash='#admin/manage'" class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer border border-purple-100 flex flex-col items-center text-center group">
+                    <div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-list-check"></i></div>
+                    <h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] group-hover:text-purple-600 transition">Gérer les événements & Inscrits</h3>
+                    <p class="text-xs text-slate-500 mt-2">Modifiez les fiches, consultez les listes d'émargement et gérez les annulations.</p>
+                </div>
+                <div onclick="window.location.hash='#admin/scan'" class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer border border-emerald-100 flex flex-col items-center text-center group">
+                    <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-camera"></i></div>
+                    <h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] group-hover:text-emerald-600 transition">Scanner les Billets</h3>
+                    <p class="text-xs text-slate-500 mt-2">Validez les présences en scannant les QR codes à l'entrée.</p>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 function renderCreateEventView(container) {
@@ -766,4 +778,117 @@ async function submitReservation(e) {
 	const nouvellesPrises = getTakenSeats(currentActiveEventId);
 	document.getElementById("modalPlaces").innerText =
 		ev.maxPlaces - nouvellesPrises;
+}
+
+let html5QrcodeScanner = null;
+
+function renderScanView(container) {
+	container.innerHTML = `
+        <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 p-6 my-4">
+            <h2 class="text-2xl font-bold text-center text-slate-800 mb-1">Contrôle d'accès</h2>
+            <p class="text-center text-slate-500 mb-6 text-sm">Cultura Saint-Aunès - Validation des tickets</p>
+
+            <div id="reader" class="w-full rounded-lg overflow-hidden border border-slate-200"></div>
+
+            <div id="resultContainer" class="mt-6 hidden p-4 rounded-lg text-center transition-all">
+                <p id="resultMessage" class="font-bold text-lg"></p>
+                <div id="ticketDetails" class="text-sm mt-2 text-slate-700"></div>
+            </div>
+        </div>
+    `;
+
+	// Charger dynamiquement le script du scanner s'il n'est pas présent
+	if (typeof Html5QrcodeScanner === "undefined") {
+		const script = document.createElement("script");
+		script.src = "https://unpkg.com/html5-qrcode";
+		script.onload = () => startScanner();
+		document.head.appendChild(script);
+	} else {
+		startScanner();
+	}
+}
+
+function startScanner() {
+	if (html5QrcodeScanner) {
+		try {
+			html5QrcodeScanner.clear();
+		} catch (e) {}
+	}
+
+	html5QrcodeScanner = new Html5QrcodeScanner(
+		"reader",
+		{
+			fps: 10,
+			qrbox: { width: 220, height: 220 },
+			facingMode: "environment",
+		},
+		false,
+	);
+	html5QrcodeScanner.render(onScanSuccess, () => {});
+}
+
+async function onScanSuccess(decodedText) {
+	if (html5QrcodeScanner) {
+		try {
+			await html5QrcodeScanner.clear();
+		} catch (e) {}
+	}
+
+	const ticketCode = decodedText.trim();
+	const resultContainer = document.getElementById("resultContainer");
+	const resultMessage = document.getElementById("resultMessage");
+	const ticketDetails = document.getElementById("ticketDetails");
+
+	if (!resultContainer) return;
+
+	resultContainer.classList.remove(
+		"hidden",
+		"bg-green-100",
+		"bg-red-100",
+		"bg-yellow-100",
+		"border-green-400",
+		"border-red-400",
+		"border-yellow-400",
+	);
+	resultContainer.classList.add("border");
+
+	const { data, error } = await supabaseClient
+		.from("reservations")
+		.select("*")
+		.eq("ticket_code", ticketCode)
+		.single();
+
+	if (error || !data) {
+		resultContainer.classList.add("bg-red-100", "border-red-400");
+		resultMessage.className = "font-bold text-lg text-red-700";
+		resultMessage.innerText = "❌ Billet invalide ou introuvable !";
+		ticketDetails.innerText =
+			"Ce QR code ne correspond à aucune réservation.";
+	} else if (data.checked_in) {
+		resultContainer.classList.add("bg-yellow-100", "border-yellow-400");
+		resultMessage.className = "font-bold text-lg text-yellow-800";
+		resultMessage.innerText = "⚠️ Attention : Billet DÉJÀ utilisé !";
+		ticketDetails.innerHTML = `Participant : <strong>${data.prenom} ${data.nom}</strong><br>Places : <strong>${data.places_count || 1}</strong>`;
+	} else {
+		const { error: updateError } = await supabaseClient
+			.from("reservations")
+			.update({ checked_in: true })
+			.eq("id", data.id);
+
+		if (updateError) {
+			resultContainer.classList.add("bg-red-100", "border-red-400");
+			resultMessage.className = "font-bold text-lg text-red-700";
+			resultMessage.innerText = "Erreur réseau lors de la validation.";
+		} else {
+			resultContainer.classList.add("bg-green-100", "border-green-400");
+			resultMessage.className = "font-bold text-lg text-green-700";
+			resultMessage.innerText = "✅ Billet valide - Entrée autorisée";
+			ticketDetails.innerHTML = `Participant : <strong>${data.prenom} ${data.nom}</strong><br>Nombre de places : <strong class="text-base">${data.places_count || 1}</strong>`;
+		}
+	}
+
+	setTimeout(() => {
+		if (resultContainer) resultContainer.classList.add("hidden");
+		startScanner();
+	}, 4000);
 }
