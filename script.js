@@ -457,7 +457,7 @@ async function onScanSuccess(decodedText) {
 	} else if (data.checked_in) {
 		resultContainer.classList.add("bg-yellow-100", "border-yellow-400");
 		resultMessage.className = "font-bold text-lg text-yellow-800";
-		resultMessage.innerText = "⚠️ Attention : Billet DÉJÀ utilisé !";
+		resultMessage.innerText = "⚠️ Attention : Billet déjà utilisé !";
 		ticketDetails.innerHTML = `Participant : <strong>${data.prenom} ${data.nom}</strong><br>Places : <strong>${data.places_count || 1}</strong>`;
 	} else {
 		const { error: updateError } = await supabaseClient
@@ -480,7 +480,7 @@ async function onScanSuccess(decodedText) {
 	setTimeout(() => {
 		if (resultContainer) resultContainer.classList.add("hidden");
 		initAndStartScanner();
-	}, 4000);
+	}, 8000);
 }
 
 function renderCreateEventView(container) {
