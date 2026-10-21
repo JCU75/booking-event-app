@@ -17,6 +17,7 @@ const loisir_creatif_url =
 let events = [];
 let reservations = {};
 let isAdminLoggedIn = sessionStorage.getItem("cultura_admin_logged") === "true";
+let html5QrCode = null;
 
 async function loadData() {
 	try {
@@ -55,7 +56,7 @@ async function loadData() {
 				email: r.email,
 				telephone: r.telephone,
 				age: r.age,
-				placesCount: r.places_count || 1, // Récupération du nombre de places réservées
+				placesCount: r.places_count || 1,
 			});
 		});
 	} catch (err) {
@@ -85,7 +86,6 @@ function getCategoryStyles(cat) {
 	}
 }
 
-// Additionne le total des places prises pour un événement donné
 function getTakenSeats(eventId) {
 	if (!reservations[eventId]) return 0;
 	return reservations[eventId].reduce(
@@ -117,39 +117,36 @@ function createEventCard(ev) {
 	const buttonText = isComplet
 		? "Victime de son succès"
 		: "Réserver une place";
-	console.log(
-		`[DEBUG] Événement : "${ev.title}" | Max : ${ev.maxPlaces} | Réservations (prises) : ${prises} | Restantes : ${restantes} | Complet ? : ${isComplet}`,
-	);
 
 	const buttonClass = isComplet
 		? "w-full bg-gray-200 border-2 border-red-200 font-['Poppins'] text-red-600 font-bold py-2.5 rounded-xl text-base transition-colors duration-200 shadow-sm flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed"
 		: "w-full bg-white border-2 border-[#034475] font-['Poppins'] text-[#034475] group-hover:bg-[#034475] group-hover:text-white font-bold py-2.5 rounded-xl text-base transition-colors duration-200 shadow-sm flex items-center justify-center gap-1.5";
 
 	return `
-                    <div onclick="openModal('${ev.id}')" class="group min-w-[300px] sm:min-w-[320px] w-[320px] h-[500px] bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-slate-200 overflow-hidden flex flex-col justify-between group flex-shrink-0">
-                        <div class="relative h-44 w-full overflow-hidden bg-slate-200">
-                            <img src="${imageUrl}" alt="${ev.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                            <span class="absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-white/90 backdrop-blur-sm border ${styles.badgeColor} shadow-sm">
-                                ${styles.label}
-                            </span>
-							<span class="absolute top-3 right-3 text-xs font-bold ${isComplet ? "text-red-500 bg-red-50" : "text-emerald-600 bg-emerald-50"} px-3 py-1 rounded-full uppercase">${isComplet ? "Complet" : restantes + " places restantes"}</span>
-                        </div>
-                        <div class="p-5 flex-grow flex flex-col justify-between space-y-3">
-                            <div>
-                                <h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] leading-[19.2px] tracking-[0px] group-hover:text-[#034475] transition leading-snug line-clamp-2 mb-5">${ev.title}</h3>
-								<div class="flex justify-between items-center mb-5">
-                                    <span class="font-['Poppins'] text-base font-semibold text-[#1877F2]"><i class="fa-solid fa-calendar-days"></i> ${dateAffichage}</span>
-                                </div>
-                                <p class="font-['Poppins'] text-[14px] text-[#1C2D55] leading-[21px] line-clamp-6 mt-1">${ev.description}</p>
-                            </div>
-                            <div class="pt-3 border-t border-slate-100 space-y-2.5">
-                                <button type="button" class="${buttonClass}">
-								${buttonText}<span class="group-hover:translate-x-0.5 transition-transform"></span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
+		<div onclick="openModal('${ev.id}')" class="group min-w-[300px] sm:min-w-[320px] w-[320px] h-[500px] bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-slate-200 overflow-hidden flex flex-col justify-between group flex-shrink-0">
+			<div class="relative h-44 w-full overflow-hidden bg-slate-200">
+				<img src="${imageUrl}" alt="${ev.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+				<span class="absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-white/90 backdrop-blur-sm border ${styles.badgeColor} shadow-sm">
+					${styles.label}
+				</span>
+				<span class="absolute top-3 right-3 text-xs font-bold ${isComplet ? "text-red-500 bg-red-50" : "text-emerald-600 bg-emerald-50"} px-3 py-1 rounded-full uppercase">${isComplet ? "Complet" : restantes + " places restantes"}</span>
+			</div>
+			<div class="p-5 flex-grow flex flex-col justify-between space-y-3">
+				<div>
+					<h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] leading-[19.2px] tracking-[0px] group-hover:text-[#034475] transition leading-snug line-clamp-2 mb-5">${ev.title}</h3>
+					<div class="flex justify-between items-center mb-5">
+						<span class="font-['Poppins'] text-base font-semibold text-[#1877F2]"><i class="fa-solid fa-calendar-days"></i> ${dateAffichage}</span>
+					</div>
+					<p class="font-['Poppins'] text-[14px] text-[#1C2D55] leading-[21px] line-clamp-6 mt-1">${ev.description}</p>
+				</div>
+				<div class="pt-3 border-t border-slate-100 space-y-2.5">
+					<button type="button" class="${buttonClass}">
+					${buttonText}<span class="group-hover:translate-x-0.5 transition-transform"></span>
+					</button>
+				</div>
+			</div>
+		</div>
+	`;
 }
 
 window.addEventListener("hashchange", router);
@@ -208,20 +205,20 @@ async function router() {
 
 function renderClientView(container) {
 	container.innerHTML = `
-                    <div class="max-w-6xl mx-auto pl-0 pr-6 mb-10 flex flex-col md:flex-row md:items-end justify-between">
-                        <div>
-                            <span class="text-base font-normal font-['Poppins'] tracking-normal text-[#00417A]"><i class="fa-regular fa-heart"></i>     Partageons nos passions</span>
-                            <h2 class="text-[40px] font-extrabold text-[#00417A] mt-1">Vibrez avec nos événements</h2>
-                        </div>
-                    </div>
-                    <div class="relative w-full">
-                        <div id="clientEventsScrollContainer" class="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth py-2 pl-6 md:pl-[max(1.5rem,calc((100vw-72rem)/2))] pr-6"></div>
-                        <div class="flex justify-center items-center gap-3 mt-6">
-                            <button onclick="slideCarousel('gauche')" class="w-10 h-10 rounded-full border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-700 shadow-sm transition active:scale-95 font-bold">←</button>
-                            <button onclick="slideCarousel('droite')" class="w-10 h-10 rounded-full border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-700 shadow-sm transition active:scale-95 font-bold">→</button>
-                        </div>
-                    </div>
-                `;
+		<div class="max-w-6xl mx-auto pl-0 pr-6 mb-10 flex flex-col md:flex-row md:items-end justify-between">
+			<div>
+				<span class="text-base font-normal font-['Poppins'] tracking-normal text-[#00417A]"><i class="fa-regular fa-heart"></i>     Partageons nos passions</span>
+				<h2 class="text-[40px] font-extrabold text-[#00417A] mt-1">Vibrez avec nos événements</h2>
+			</div>
+		</div>
+		<div class="relative w-full">
+			<div id="clientEventsScrollContainer" class="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth py-2 pl-6 md:pl-[max(1.5rem,calc((100vw-72rem)/2))] pr-6"></div>
+			<div class="flex justify-center items-center gap-3 mt-6">
+				<button onclick="slideCarousel('gauche')" class="w-10 h-10 rounded-full border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-700 shadow-sm transition active:scale-95 font-bold">←</button>
+				<button onclick="slideCarousel('droite')" class="w-10 h-10 rounded-full border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-700 shadow-sm transition active:scale-95 font-bold">→</button>
+			</div>
+		</div>
+	`;
 	renderClientEventsGrid();
 }
 
@@ -246,25 +243,25 @@ function renderClientEventsGrid() {
 
 function renderLoginView(container) {
 	container.innerHTML = `
-                    <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 my-12 px-4 pb-6">
-                        <div class="bg-[#034475] p-6 text-white text-center -mx-4 -mt-4 mb-4">
-                            <h2 class="text-xl font-bold">Espace Collaborateur</h2>
-                            <p class="text-xs text-blue-200 mt-1">Connexion sécurisée Cultura Saint-Aunès</p>
-                        </div>
-                        <form onsubmit="handleLogin(event)" class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Identifiant</label>
-                                <input type="text" id="loginUser" required placeholder="admin" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Mot de passe</label>
-                                <input type="password" id="loginPass" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                            </div>
-                            <div id="loginError" class="text-xs text-red-500 font-semibold hidden">Identifiant ou mot de passe incorrect.</div>
-                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition shadow-md">Se connecter</button>
-                        </form>
-                    </div>
-                `;
+		<div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 my-12 px-4 pb-6">
+			<div class="bg-[#034475] p-6 text-white text-center -mx-4 -mt-4 mb-4">
+				<h2 class="text-xl font-bold">Espace Collaborateur</h2>
+				<p class="text-xs text-blue-200 mt-1">Connexion sécurisée Cultura Saint-Aunès</p>
+			</div>
+			<form onsubmit="handleLogin(event)" class="space-y-4">
+				<div>
+					<label class="block text-xs font-bold text-slate-600 uppercase mb-1">Identifiant</label>
+					<input type="text" id="loginUser" required placeholder="admin" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+				</div>
+				<div>
+					<label class="block text-xs font-bold text-slate-600 uppercase mb-1">Mot de passe</label>
+					<input type="password" id="loginPass" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+				</div>
+				<div id="loginError" class="text-xs text-red-500 font-semibold hidden">Identifiant ou mot de passe incorrect.</div>
+				<button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition shadow-md">Se connecter</button>
+			</form>
+		</div>
+	`;
 }
 
 async function handleLogin(e) {
@@ -299,30 +296,191 @@ function logoutAdmin() {
 
 function renderAdminDashboard(container) {
 	container.innerHTML = `
-        <div class="max-w-6xl mx-auto px-6">
-            <div class="mb-10 text-center md:text-center">
-                <h2 class="font-['Poppins'] text-4xl font-extrabold text-[#00447F]">Tableau de bord Administrateur</h2>
-                <p class="text-sm text-slate-600 mt-1">Choisissez une action ci-dessous pour gérer l'agenda du magasin.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                <div onclick="window.location.hash='#admin/create'" class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer border border-blue-100 flex flex-col items-center text-center group">
-                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-circle-plus"></i></div>
-                    <h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] group-hover:text-blue-600 transition">Créer un événement</h3>
-                    <p class="text-xs text-slate-500 mt-2">Ajoutez une nouvelle animation, un loisir créatif ou une dédicace.</p>
-                </div>
-                <div onclick="window.location.hash='#admin/manage'" class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer border border-purple-100 flex flex-col items-center text-center group">
-                    <div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-list-check"></i></div>
-                    <h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] group-hover:text-purple-600 transition">Gérer les événements & Inscrits</h3>
-                    <p class="text-xs text-slate-500 mt-2">Modifiez les fiches, consultez les listes d'émargement et gérez les annulations.</p>
-                </div>
-                <div onclick="window.location.hash='#admin/scan'" class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer border border-emerald-100 flex flex-col items-center text-center group">
-                    <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-camera"></i></div>
-                    <h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] group-hover:text-emerald-600 transition">Scanner les Billets</h3>
-                    <p class="text-xs text-slate-500 mt-2">Validez les présences en scannant les QR codes à l'entrée.</p>
-                </div>
-            </div>
-        </div>
-    `;
+		<div class="max-w-6xl mx-auto px-6">
+			<div class="mb-10 text-center md:text-center">
+				<h2 class="font-['Poppins'] text-4xl font-extrabold text-[#00447F]">Tableau de bord Administrateur</h2>
+				<p class="text-sm text-slate-600 mt-1">Choisissez une action ci-dessous pour gérer l'agenda du magasin.</p>
+			</div>
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+				<div onclick="window.location.hash='#admin/create'" class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer border border-blue-100 flex flex-col items-center text-center group">
+					<div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-circle-plus"></i></div>
+					<h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] group-hover:text-blue-600 transition">Créer un événement</h3>
+					<p class="text-xs text-slate-500 mt-2">Ajoutez une nouvelle animation, un loisir créatif ou une dédicace.</p>
+				</div>
+				<div onclick="window.location.hash='#admin/manage'" class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer border border-purple-100 flex flex-col items-center text-center group">
+					<div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-list-check"></i></div>
+					<h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] group-hover:text-purple-600 transition">Gérer les événements & Inscrits</h3>
+					<p class="text-xs text-slate-500 mt-2">Modifiez les fiches, consultez les listes d'émargement et gérez les annulations.</p>
+				</div>
+				<div onclick="window.location.hash='#admin/scan'" class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer border border-emerald-100 flex flex-col items-center text-center group">
+					<div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition"><i class="fa-solid fa-camera"></i></div>
+					<h3 class="font-['Poppins'] text-lg font-bold text-[#00447F] group-hover:text-emerald-600 transition">Scanner les Billets</h3>
+					<p class="text-xs text-slate-500 mt-2">Validez les présences en scannant les QR codes à l'entrée.</p>
+				</div>
+			</div>
+		</div>
+	`;
+}
+
+// GESTION DU SCANNER QR CODE INTÉGRÉ
+function renderScanView(container) {
+	container.innerHTML = `
+		<div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 p-6 my-4">
+			<h2 class="text-2xl font-bold text-center text-slate-800 mb-1">Contrôle d'accès</h2>
+			<p class="text-center text-slate-500 mb-6 text-sm">Cultura Saint-Aunès - Validation des tickets</p>
+
+			<div id="startScanContainer" class="text-center py-4">
+				<button onclick="initAndStartScanner()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-xl text-lg shadow-lg transition flex items-center justify-center gap-3">
+					<i class="fa-solid fa-camera text-2xl"></i> Démarrer le scanner
+				</button>
+			</div>
+
+			<div id="reader" class="w-full rounded-lg overflow-hidden border border-slate-200 hidden"></div>
+
+			<div id="stopScanContainer" class="mt-4 hidden text-center">
+				<button onclick="stopScanner()" class="bg-red-100 hover:bg-red-200 text-red-700 font-bold py-2 px-4 rounded-lg text-sm transition">
+					Arrêter la caméra
+				</button>
+			</div>
+
+			<div id="resultContainer" class="mt-6 hidden p-4 rounded-lg text-center transition-all">
+				<p id="resultMessage" class="font-bold text-lg"></p>
+				<div id="ticketDetails" class="text-sm mt-2 text-slate-700"></div>
+			</div>
+		</div>
+	`;
+
+	if (typeof Html5Qrcode === "undefined") {
+		const script = document.createElement("script");
+		script.src = "https://unpkg.com/html5-qrcode";
+		document.head.appendChild(script);
+	}
+}
+
+async function initAndStartScanner() {
+	const startContainer = document.getElementById("startScanContainer");
+	const readerEl = document.getElementById("reader");
+	const stopContainer = document.getElementById("stopScanContainer");
+
+	if (startContainer) startContainer.classList.add("hidden");
+	if (readerEl) readerEl.classList.remove("hidden");
+	if (stopContainer) stopContainer.classList.remove("hidden");
+
+	if (!html5QrCode) {
+		html5QrCode = new Html5Qrcode("reader");
+	}
+
+	const config = {
+		fps: 10,
+		qrbox: { width: 250, height: 250 },
+	};
+
+	try {
+		await html5QrCode.start(
+			{ facingMode: "environment" },
+			config,
+			onScanSuccess,
+			() => {},
+		);
+	} catch (err) {
+		console.error("Erreur caméra arrière :", err);
+		try {
+			await html5QrCode.start(
+				{ facingMode: "user" },
+				config,
+				onScanSuccess,
+				() => {},
+			);
+		} catch (e) {
+			alert(
+				"Impossible d'accéder à la caméra. Vérifiez les autorisations de votre navigateur.",
+			);
+			stopScanner();
+		}
+	}
+}
+
+async function stopScanner() {
+	if (html5QrCode && html5QrCode.isScanning) {
+		try {
+			await html5QrCode.stop();
+		} catch (e) {
+			console.error(e);
+		}
+	}
+	const readerEl = document.getElementById("reader");
+	const stopContainer = document.getElementById("stopScanContainer");
+	const startContainer = document.getElementById("startScanContainer");
+
+	if (readerEl) readerEl.classList.add("hidden");
+	if (stopContainer) stopContainer.classList.add("hidden");
+	if (startContainer) startContainer.classList.remove("hidden");
+}
+
+async function onScanSuccess(decodedText) {
+	if (html5QrCode && html5QrCode.isScanning) {
+		try {
+			await html5QrCode.stop();
+		} catch (e) {}
+	}
+
+	const ticketCode = decodedText.trim();
+	const resultContainer = document.getElementById("resultContainer");
+	const resultMessage = document.getElementById("resultMessage");
+	const ticketDetails = document.getElementById("ticketDetails");
+
+	if (!resultContainer) return;
+
+	resultContainer.classList.remove(
+		"hidden",
+		"bg-green-100",
+		"bg-red-100",
+		"bg-yellow-100",
+		"border-green-400",
+		"border-red-400",
+		"border-yellow-400",
+	);
+	resultContainer.classList.add("border");
+
+	const { data, error } = await supabaseClient
+		.from("reservations")
+		.select("*")
+		.eq("ticket_code", ticketCode)
+		.single();
+
+	if (error || !data) {
+		resultContainer.classList.add("bg-red-100", "border-red-400");
+		resultMessage.className = "font-bold text-lg text-red-700";
+		resultMessage.innerText = "❌ Billet invalide ou introuvable !";
+		ticketDetails.innerText =
+			"Ce QR code ne correspond à aucune réservation.";
+	} else if (data.checked_in) {
+		resultContainer.classList.add("bg-yellow-100", "border-yellow-400");
+		resultMessage.className = "font-bold text-lg text-yellow-800";
+		resultMessage.innerText = "⚠️ Attention : Billet DÉJÀ utilisé !";
+		ticketDetails.innerHTML = `Participant : <strong>${data.prenom} ${data.nom}</strong><br>Places : <strong>${data.places_count || 1}</strong>`;
+	} else {
+		const { error: updateError } = await supabaseClient
+			.from("reservations")
+			.update({ checked_in: true })
+			.eq("id", data.id);
+
+		if (updateError) {
+			resultContainer.classList.add("bg-red-100", "border-red-400");
+			resultMessage.className = "font-bold text-lg text-red-700";
+			resultMessage.innerText = "Erreur réseau lors de la validation.";
+		} else {
+			resultContainer.classList.add("bg-green-100", "border-green-400");
+			resultMessage.className = "font-bold text-lg text-green-700";
+			resultMessage.innerText = "✅ Billet valide - Entrée autorisée";
+			ticketDetails.innerHTML = `Participant : <strong>${data.prenom} ${data.nom}</strong><br>Nombre de places : <strong class="text-base">${data.places_count || 1}</strong>`;
+		}
+	}
+
+	setTimeout(() => {
+		if (resultContainer) resultContainer.classList.add("hidden");
+		initAndStartScanner();
+	}, 4000);
 }
 
 function renderCreateEventView(container) {
@@ -331,60 +489,60 @@ function renderCreateEventView(container) {
 	const defaultDateStr = nextWeek.toISOString().split("T")[0];
 
 	container.innerHTML = `
-                    <div class="max-w-4xl mx-auto px-6">
-                        <div class="mb-6">
-                            <h2 class="font-['Poppins'] text-2xl font-extrabold text-[#00447F]">Créer un nouvel événement</h2>
-                            <p class="text-xs text-slate-600">Remplissez les informations ci-dessous.</p>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start bg-white p-6 rounded-2xl shadow-md border border-slate-200">
-                            <form id="newEventQueueForm" onsubmit="addEvent(event)" class="space-y-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Titre</label>
-                                    <input type="text" id="newTitle" oninput="updatePreview()" required placeholder="Ex: Atelier Peinture" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Catégorie</label>
-                                    <select id="newCategory" onchange="updatePreview()" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                                        <option value="animation">Animation</option>
-                                        <option value="loisir créatif">Loisir créatif</option>
-                                        <option value="dédicace">Dédicace</option>
-                                    </select>
-                                </div>
-                                <div class="grid grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Date</label>
-                                        <input type="date" id="newDate" onchange="updatePreview()" value="${defaultDateStr}" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Heure</label>
-                                        <input type="time" id="newTime" onchange="updatePreview()" value="15:00" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Places max</label>
-                                        <input type="number" id="newMaxPlaces" oninput="updatePreview()" value="10" min="1" max="100" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Description</label>
-                                    <textarea id="newDesc" oninput="updatePreview()" rows="3" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Lien de l'image</label>
-                                    <input type="url" id="newImage" oninput="updatePreview()" placeholder="https://images.unsplash.com/..." class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
-                                </div>
-                                <div class="flex items-center gap-2 pt-2">
-                                    <input type="checkbox" id="newAskAge" class="w-4 h-4 text-blue-600 rounded border-slate-300">
-                                    <label for="newAskAge" class="text-xs font-bold text-slate-700">Demander l'âge des participants</label>
-                                </div>
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition shadow-md mt-4">Publier l'événement</button>
-                            </form>
-                            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col items-center justify-center">
-                                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Aperçu en direct</span>
-                                <div id="cardPreviewContainer" class="w-full flex justify-center"></div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+		<div class="max-w-4xl mx-auto px-6">
+			<div class="mb-6">
+				<h2 class="font-['Poppins'] text-2xl font-extrabold text-[#00447F]">Créer un nouvel événement</h2>
+				<p class="text-xs text-slate-600">Remplissez les informations ci-dessous.</p>
+			</div>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start bg-white p-6 rounded-2xl shadow-md border border-slate-200">
+				<form id="newEventQueueForm" onsubmit="addEvent(event)" class="space-y-4">
+					<div>
+						<label class="block text-xs font-bold text-slate-600 uppercase mb-1">Titre</label>
+						<input type="text" id="newTitle" oninput="updatePreview()" required placeholder="Ex: Atelier Peinture" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+					</div>
+					<div>
+						<label class="block text-xs font-bold text-slate-600 uppercase mb-1">Catégorie</label>
+						<select id="newCategory" onchange="updatePreview()" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+							<option value="animation">Animation</option>
+							<option value="loisir créatif">Loisir créatif</option>
+							<option value="dédicace">Dédicace</option>
+						</select>
+					</div>
+					<div class="grid grid-cols-3 gap-3">
+						<div>
+							<label class="block text-xs font-bold text-slate-600 uppercase mb-1">Date</label>
+							<input type="date" id="newDate" onchange="updatePreview()" value="${defaultDateStr}" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
+						</div>
+						<div>
+							<label class="block text-xs font-bold text-slate-600 uppercase mb-1">Heure</label>
+							<input type="time" id="newTime" onchange="updatePreview()" value="15:00" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
+						</div>
+						<div>
+							<label class="block text-xs font-bold text-slate-600 uppercase mb-1">Places max</label>
+							<input type="number" id="newMaxPlaces" oninput="updatePreview()" value="10" min="1" max="100" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
+						</div>
+					</div>
+					<div>
+						<label class="block text-xs font-bold text-slate-600 uppercase mb-1">Description</label>
+						<textarea id="newDesc" oninput="updatePreview()" rows="3" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></textarea>
+					</div>
+					<div>
+						<label class="block text-xs font-bold text-slate-600 uppercase mb-1">Lien de l'image</label>
+						<input type="url" id="newImage" oninput="updatePreview()" placeholder="https://images.unsplash.com/..." class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
+					</div>
+					<div class="flex items-center gap-2 pt-2">
+						<input type="checkbox" id="newAskAge" class="w-4 h-4 text-blue-600 rounded border-slate-300">
+						<label for="newAskAge" class="text-xs font-bold text-slate-700">Demander l'âge des participants</label>
+					</div>
+					<button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition shadow-md mt-4">Publier l'événement</button>
+				</form>
+				<div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col items-center justify-center">
+					<span class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Aperçu en direct</span>
+					<div id="cardPreviewContainer" class="w-full flex justify-center"></div>
+				</div>
+			</div>
+		</div>
+	`;
 	updatePreview();
 }
 
@@ -455,36 +613,36 @@ function renderEditEventView(container, eventId) {
 	}
 
 	container.innerHTML = `
-                    <div class="max-w-2xl mx-auto px-6 bg-white p-8 rounded-2xl shadow-md border border-slate-200">
-                        <div class="mb-6"><h2 class="text-2xl font-extrabold text-slate-900">Modifier l'événement</h2></div>
-                        <form onsubmit="saveUpdate(event, '${ev.id}')" class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Titre</label>
-                                <input type="text" id="editTitle" value="${ev.title}" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Catégorie</label>
-                                <select id="editCategory" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
-                                    <option value="animation" ${ev.category === "animation" ? "selected" : ""}>Animation</option>
-                                    <option value="loisir créatif" ${ev.category === "loisir créatif" ? "selected" : ""}>Loisir créatif</option>
-                                    <option value="dédicace" ${ev.category === "dédicace" ? "selected" : ""}>Dédicace</option>
-                                </select>
-                            </div>
-                            <div class="grid grid-cols-3 gap-3">
-                                <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Date</label><input type="date" id="editDate" value="${ev.rawDate}" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></div>
-                                <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Heure</label><input type="time" id="editTime" value="${ev.time || "15:00"}" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></div>
-                                <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Places max</label><input type="number" id="editMaxPlaces" value="${ev.maxPlaces}" min="1" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></div>
-                            </div>
-                            <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Description</label><textarea id="editDesc" rows="3" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">${ev.description}</textarea></div>
-                            <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Lien de l'image</label><input type="url" id="editImage" value="${ev.image || ""}" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></div>
-                            <div class="flex items-center gap-2 pt-2">
-                                <input type="checkbox" id="editAskAge" ${ev.askAge ? "checked" : ""} class="w-4 h-4 text-blue-600 rounded border-slate-300">
-                                <label for="editAskAge" class="text-xs font-bold text-slate-700">Demander l'âge des participants</label>
-                            </div>
-                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition shadow-md mt-4">Enregistrer</button>
-                        </form>
-                    </div>
-                `;
+		<div class="max-w-2xl mx-auto px-6 bg-white p-8 rounded-2xl shadow-md border border-slate-200">
+			<div class="mb-6"><h2 class="text-2xl font-extrabold text-slate-900">Modifier l'événement</h2></div>
+			<form onsubmit="saveUpdate(event, '${ev.id}')" class="space-y-4">
+				<div>
+					<label class="block text-xs font-bold text-slate-600 uppercase mb-1">Titre</label>
+					<input type="text" id="editTitle" value="${ev.title}" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
+				</div>
+				<div>
+					<label class="block text-xs font-bold text-slate-600 uppercase mb-1">Catégorie</label>
+					<select id="editCategory" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
+						<option value="animation" ${ev.category === "animation" ? "selected" : ""}>Animation</option>
+						<option value="loisir créatif" ${ev.category === "loisir créatif" ? "selected" : ""}>Loisir créatif</option>
+						<option value="dédicace" ${ev.category === "dédicace" ? "selected" : ""}>Dédicace</option>
+					</select>
+				</div>
+				<div class="grid grid-cols-3 gap-3">
+					<div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Date</label><input type="date" id="editDate" value="${ev.rawDate}" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></div>
+					<div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Heure</label><input type="time" id="editTime" value="${ev.time || "15:00"}" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></div>
+					<div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Places max</label><input type="number" id="editMaxPlaces" value="${ev.maxPlaces}" min="1" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></div>
+				</div>
+				<div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Description</label><textarea id="editDesc" rows="3" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">${ev.description}</textarea></div>
+				<div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Lien de l'image</label><input type="url" id="editImage" value="${ev.image || ""}" class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm"></div>
+				<div class="flex items-center gap-2 pt-2">
+					<input type="checkbox" id="editAskAge" ${ev.askAge ? "checked" : ""} class="w-4 h-4 text-blue-600 rounded border-slate-300">
+					<label for="editAskAge" class="text-xs font-bold text-slate-700">Demander l'âge des participants</label>
+				</div>
+				<button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition shadow-md mt-4">Enregistrer</button>
+			</form>
+		</div>
+	`;
 }
 
 async function saveUpdate(e, eventId) {
@@ -515,29 +673,29 @@ async function saveUpdate(e, eventId) {
 
 function renderManageEventsView(container) {
 	container.innerHTML = `
-                    <div class="max-w-5xl mx-auto px-6">
-                        <div class="mb-6 flex justify-between items-center">
-                            <div>
-                                <h2 class="text-2xl font-extrabold text-slate-900">Gestion des événements</h2>
-                                <p class="text-xs text-slate-600">Modifiez, visualisez les inscrits ou supprimez des sessions.</p>
-                            </div>
-                            <button onclick="window.location.hash='#admin/create'" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow">+ Ajouter</button>
-                        </div>
-                        <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-                            <table class="w-full text-left border-collapse text-xs">
-                                <thead>
-                                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 uppercase text-[10px]">
-                                        <th class="py-3 px-4">Événement</th>
-                                        <th class="py-3 px-4">Date & Heure</th>
-                                        <th class="py-3 px-4">Inscrits / Max</th>
-                                        <th class="py-3 px-4 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="manageTableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                `;
+		<div class="max-w-5xl mx-auto px-6">
+			<div class="mb-6 flex justify-between items-center">
+				<div>
+					<h2 class="text-2xl font-extrabold text-slate-900">Gestion des événements</h2>
+					<p class="text-xs text-slate-600">Modifiez, visualisez les inscrits ou supprimez des sessions.</p>
+				</div>
+				<button onclick="window.location.hash='#admin/create'" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow">+ Ajouter</button>
+			</div>
+			<div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+				<table class="w-full text-left border-collapse text-xs">
+					<thead>
+						<tr class="bg-slate-50 border-b border-slate-200 text-slate-400 uppercase text-[10px]">
+							<th class="py-3 px-4">Événement</th>
+							<th class="py-3 px-4">Date & Heure</th>
+							<th class="py-3 px-4">Inscrits / Max</th>
+							<th class="py-3 px-4 text-right">Actions</th>
+						</tr>
+					</thead>
+					<tbody id="manageTableBody"></tbody>
+				</table>
+			</div>
+		</div>
+	`;
 	renderManageTable();
 }
 
@@ -553,17 +711,17 @@ function renderManageTable() {
 		const prises = getTakenSeats(ev.id);
 		const styles = getCategoryStyles(ev.category);
 		tbody.innerHTML += `
-                        <tr class="border-b border-slate-100 hover:bg-slate-50">
-                            <td class="py-3 px-4"><div class="font-bold text-slate-900">${ev.title}</div><span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${styles.badgeColor}">${styles.label}</span></td>
-                            <td class="py-3 px-4 text-slate-600 font-medium">${formatDateTime(ev.rawDate, ev.time)}</td>
-                            <td class="py-3 px-4 font-bold text-slate-700">${prises} / ${ev.maxPlaces} places</td>
-                            <td class="py-3 px-4 text-right space-x-1">
-                                <button onclick="window.location.hash='#admin/edit/${ev.id}'" class="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold px-2.5 py-1.5 rounded">✏ Modifier</button>
-                                <button onclick="openAdminReservationsModal('${ev.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold px-2.5 py-1.5 rounded">👥 Inscrits</button>
-                                <button onclick="deleteEvent('${ev.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 font-bold px-2.5 py-1.5 rounded">🗑 Supprimer</button>
-                            </td>
-                        </tr>
-                    `;
+			<tr class="border-b border-slate-100 hover:bg-slate-50">
+				<td class="py-3 px-4"><div class="font-bold text-slate-900">${ev.title}</div><span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${styles.badgeColor}">${styles.label}</span></td>
+				<td class="py-3 px-4 text-slate-600 font-medium">${formatDateTime(ev.rawDate, ev.time)}</td>
+				<td class="py-3 px-4 font-bold text-slate-700">${prises} / ${ev.maxPlaces} places</td>
+				<td class="py-3 px-4 text-right space-x-1">
+					<button onclick="window.location.hash='#admin/edit/${ev.id}'" class="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold px-2.5 py-1.5 rounded">✏ Modifier</button>
+					<button onclick="openAdminReservationsModal('${ev.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold px-2.5 py-1.5 rounded">👥 Inscrits</button>
+					<button onclick="deleteEvent('${ev.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 font-bold px-2.5 py-1.5 rounded">🗑 Supprimer</button>
+				</td>
+			</tr>
+		`;
 	});
 }
 
@@ -600,18 +758,18 @@ function openAdminReservationsModal(eventId) {
 		let html = `<table class="w-full text-left border-collapse text-xs"><thead><tr class="border-b border-slate-200 text-slate-400 uppercase text-[10px]"><th class="py-2 px-2">#</th><th class="py-2 px-2">Nom & Prénom</th><th class="py-2 px-2">E-mail</th><th class="py-2 px-2">Téléphone</th><th class="py-2 px-2">Places</th>${ev.askAge ? '<th class="py-2 px-2">Âge</th>' : ""}<th class="py-2 px-2 text-right no-print">Action</th></tr></thead><tbody>`;
 		list.forEach((item, index) => {
 			html += `
-                            <tr class="border-b border-slate-100 hover:bg-slate-50">
-                                <td class="py-2.5 px-2 font-bold text-slate-400">${index + 1}</td>
-                                <td class="py-2.5 px-2 font-semibold text-slate-800">${item.nom} ${item.prenom}</td>
-                                <td class="py-2.5 px-2 text-blue-600 underline"><a href="mailto:${item.email}">${item.email}</a></td>
-                                <td class="py-2.5 px-2 text-slate-600">${item.telephone}</td>
-                                <td class="py-2.5 px-2 font-bold text-blue-600">${item.placesCount || 1} pl.</td>
-                                ${ev.askAge ? `<td class="py-2.5 px-2 text-slate-600 font-medium">${item.age ? item.age + " ans" : "-"}</td>` : ""}
-                                <td class="py-2.5 px-2 text-right no-print">
-                                    <button onclick="cancelReservation('${item.id}', '${eventId}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 rounded">Annuler</button>
-                                </td>
-                            </tr>
-                        `;
+				<tr class="border-b border-slate-100 hover:bg-slate-50">
+					<td class="py-2.5 px-2 font-bold text-slate-400">${index + 1}</td>
+					<td class="py-2.5 px-2 font-semibold text-slate-800">${item.nom} ${item.prenom}</td>
+					<td class="py-2.5 px-2 text-blue-600 underline"><a href="mailto:${item.email}">${item.email}</a></td>
+					<td class="py-2.5 px-2 text-slate-600">${item.telephone}</td>
+					<td class="py-2.5 px-2 font-bold text-blue-600">${item.placesCount || 1} pl.</td>
+					${ev.askAge ? `<td class="py-2.5 px-2 text-slate-600 font-medium">${item.age ? item.age + " ans" : "-"}</td>` : ""}
+					<td class="py-2.5 px-2 text-right no-print">
+						<button onclick="cancelReservation('${item.id}', '${eventId}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 rounded">Annuler</button>
+					</td>
+				</tr>
+			`;
 		});
 		html += `</tbody></table>`;
 		content.innerHTML = html;
@@ -666,7 +824,6 @@ function openModal(eventId) {
 	document.getElementById("modalMaxPlaces").innerText = ev.maxPlaces;
 	document.getElementById("modalEventId").value = ev.id;
 
-	// Génération des options du sélecteur de places (maximum 5 ou selon les places restantes)
 	const maxSelectable = Math.min(restantes, 5);
 	let optionsHtml = "";
 	for (let i = 1; i <= maxSelectable; i++) {
@@ -676,12 +833,12 @@ function openModal(eventId) {
 	const ageContainer = document.getElementById("ageFieldContainer");
 	if (ev.askAge) {
 		ageContainer.innerHTML = `
-                        <div class="grid grid-cols-3 gap-2">
-                            <div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Téléphone</label><input type="tel" id="telephone" required placeholder="06..." class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm"></div>
-                            <div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Âge</label><input type="number" id="age" required min="1" max="120" class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm"></div>
-                            <div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Places</label><select id="placesCount" class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm">${optionsHtml}</select></div>
-                        </div>
-                    `;
+			<div class="grid grid-cols-3 gap-2">
+				<div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Téléphone</label><input type="tel" id="telephone" required placeholder="06..." class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm"></div>
+				<div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Âge</label><input type="number" id="age" required min="1" max="120" class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm"></div>
+				<div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Places</label><select id="placesCount" class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm">${optionsHtml}</select></div>
+			</div>
+		`;
 	} else {
 		ageContainer.innerHTML = `
 			<div class="grid grid-cols-2 gap-3">
@@ -722,8 +879,6 @@ async function submitReservation(e) {
 		alert("Désolé, il ne reste plus assez de places pour cette quantité.");
 		return;
 	}
-
-	// 1. Génération du code unique pour le ticket
 	const ticketCode = crypto.randomUUID();
 
 	const newRes = {
@@ -738,38 +893,16 @@ async function submitReservation(e) {
 		checked_in: false,
 	};
 
-	// 2. Sauvegarde dans Supabase
 	const { error } = await supabaseClient
 		.from("reservations")
 		.insert([newRes]);
-
 	if (error) {
 		alert("Erreur lors de la réservation : " + error.message);
 		return;
 	}
 
-	// 3. Déclenchement de l'envoi de l'e-mail via l'API Vercel / Mailjet
-	try {
-		await fetch("/api/send-ticket", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				email: newRes.email,
-				nom: newRes.nom,
-				prenom: newRes.prenom,
-				eventTitle: ev.title,
-				eventDate: formatDateTime(ev.rawDate, ev.time),
-				placesCount: requestedPlaces,
-				ticketCode: ticketCode,
-			}),
-		});
-	} catch (mailError) {
-		console.error("Erreur d'envoi du mail :", mailError);
-	}
-
 	await loadData();
 
-	// 4. Affichage de la modale de succès
 	document.getElementById("successName").innerText =
 		newRes.prenom + " " + newRes.nom + ` (${requestedPlaces} places)`;
 	document.getElementById("modalFormContainer").classList.add("hidden");
@@ -778,117 +911,4 @@ async function submitReservation(e) {
 	const nouvellesPrises = getTakenSeats(currentActiveEventId);
 	document.getElementById("modalPlaces").innerText =
 		ev.maxPlaces - nouvellesPrises;
-}
-
-let html5QrcodeScanner = null;
-
-function renderScanView(container) {
-	container.innerHTML = `
-        <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 p-6 my-4">
-            <h2 class="text-2xl font-bold text-center text-slate-800 mb-1">Contrôle d'accès</h2>
-            <p class="text-center text-slate-500 mb-6 text-sm">Cultura Saint-Aunès - Validation des tickets</p>
-
-            <div id="reader" class="w-full rounded-lg overflow-hidden border border-slate-200"></div>
-
-            <div id="resultContainer" class="mt-6 hidden p-4 rounded-lg text-center transition-all">
-                <p id="resultMessage" class="font-bold text-lg"></p>
-                <div id="ticketDetails" class="text-sm mt-2 text-slate-700"></div>
-            </div>
-        </div>
-    `;
-
-	// Charger dynamiquement le script du scanner s'il n'est pas présent
-	if (typeof Html5QrcodeScanner === "undefined") {
-		const script = document.createElement("script");
-		script.src = "https://unpkg.com/html5-qrcode";
-		script.onload = () => startScanner();
-		document.head.appendChild(script);
-	} else {
-		startScanner();
-	}
-}
-
-function startScanner() {
-	if (html5QrcodeScanner) {
-		try {
-			html5QrcodeScanner.clear();
-		} catch (e) {}
-	}
-
-	html5QrcodeScanner = new Html5QrcodeScanner(
-		"reader",
-		{
-			fps: 10,
-			qrbox: { width: 220, height: 220 },
-			facingMode: "environment",
-		},
-		false,
-	);
-	html5QrcodeScanner.render(onScanSuccess, () => {});
-}
-
-async function onScanSuccess(decodedText) {
-	if (html5QrcodeScanner) {
-		try {
-			await html5QrcodeScanner.clear();
-		} catch (e) {}
-	}
-
-	const ticketCode = decodedText.trim();
-	const resultContainer = document.getElementById("resultContainer");
-	const resultMessage = document.getElementById("resultMessage");
-	const ticketDetails = document.getElementById("ticketDetails");
-
-	if (!resultContainer) return;
-
-	resultContainer.classList.remove(
-		"hidden",
-		"bg-green-100",
-		"bg-red-100",
-		"bg-yellow-100",
-		"border-green-400",
-		"border-red-400",
-		"border-yellow-400",
-	);
-	resultContainer.classList.add("border");
-
-	const { data, error } = await supabaseClient
-		.from("reservations")
-		.select("*")
-		.eq("ticket_code", ticketCode)
-		.single();
-
-	if (error || !data) {
-		resultContainer.classList.add("bg-red-100", "border-red-400");
-		resultMessage.className = "font-bold text-lg text-red-700";
-		resultMessage.innerText = "❌ Billet invalide ou introuvable !";
-		ticketDetails.innerText =
-			"Ce QR code ne correspond à aucune réservation.";
-	} else if (data.checked_in) {
-		resultContainer.classList.add("bg-yellow-100", "border-yellow-400");
-		resultMessage.className = "font-bold text-lg text-yellow-800";
-		resultMessage.innerText = "⚠️ Attention : Billet DÉJÀ utilisé !";
-		ticketDetails.innerHTML = `Participant : <strong>${data.prenom} ${data.nom}</strong><br>Places : <strong>${data.places_count || 1}</strong>`;
-	} else {
-		const { error: updateError } = await supabaseClient
-			.from("reservations")
-			.update({ checked_in: true })
-			.eq("id", data.id);
-
-		if (updateError) {
-			resultContainer.classList.add("bg-red-100", "border-red-400");
-			resultMessage.className = "font-bold text-lg text-red-700";
-			resultMessage.innerText = "Erreur réseau lors de la validation.";
-		} else {
-			resultContainer.classList.add("bg-green-100", "border-green-400");
-			resultMessage.className = "font-bold text-lg text-green-700";
-			resultMessage.innerText = "✅ Billet valide - Entrée autorisée";
-			ticketDetails.innerHTML = `Participant : <strong>${data.prenom} ${data.nom}</strong><br>Nombre de places : <strong class="text-base">${data.places_count || 1}</strong>`;
-		}
-	}
-
-	setTimeout(() => {
-		if (resultContainer) resultContainer.classList.add("hidden");
-		startScanner();
-	}, 4000);
 }
