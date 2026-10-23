@@ -901,6 +901,29 @@ async function submitReservation(e) {
 		return;
 	}
 
+	// Appel de l'API Serverless pour envoyer l'e-mail via Nodemailer / Gmail
+	try {
+		const emailResponse = await fetch("/api/send-ticket", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				email: newRes.email,
+				nom: newRes.nom,
+				prenom: newRes.prenom,
+				eventTitle: ev.title,
+				eventDate: formatDateTime(ev.rawDate, ev.time),
+				placesCount: requestedPlaces,
+				ticketCode: ticketCode,
+			}),
+		});
+
+		if (!emailResponse.ok) {
+			console.error("Erreur lors de l'envoi de l'e-mail par le serveur");
+		}
+	} catch (err) {
+		console.error("Erreur réseau lors de l'appel de l'API email :", err);
+	}
+
 	await loadData();
 
 	document.getElementById("successName").innerText =
