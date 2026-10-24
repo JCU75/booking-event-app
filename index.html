@@ -241,34 +241,67 @@
 
 					<div
 						id="modalSuccess"
-						class="hidden text-center space-y-3 py-4"
+						class="hidden text-center space-y-3 py-2"
 					>
 						<div
-							class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold"
+							class="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-lg font-bold"
 						>
 							✓
 						</div>
-						<h4 class="text-lg font-bold text-slate-900">
+						<h4 class="text-base font-bold text-slate-900">
 							Réservation validée !
 						</h4>
-						<p
-							class="text-xs text-slate-600 text-justify leading-relaxed px-4 mb-6"
-						>
+						<p class="text-xs text-slate-600 px-2">
 							Merci
 							<span
 								id="successName"
 								class="font-semibold capitalize"
 							></span
-							>. Votre réservation a bien été enregistrée! Un
-							email vous a été envoyé, veuillez le présenter pour
-							participer à l'événement.
+							>. Votre réservation est enregistrée. Veuillez
+							présenter ce QR code à l'entrée :
 						</p>
-						<button
-							onclick="closeModal()"
-							class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2 rounded-lg transition"
+
+						<!-- Zone d'affichage du Ticket et du QR Code -->
+						<div
+							id="ticketCardPreview"
+							class="bg-slate-50 border border-slate-200 p-4 rounded-xl max-w-xs mx-auto text-center space-y-2"
 						>
-							Fermer
-						</button>
+							<h5
+								id="ticketEventTitle"
+								class="font-bold text-xs text-[#034475]"
+							></h5>
+							<p
+								id="ticketEventDate"
+								class="text-[11px] text-slate-600"
+							></p>
+							<div class="my-2 flex justify-center">
+								<img
+									id="ticketQrImage"
+									src=""
+									alt="QR Code Billet"
+									class="w-36 h-36 border-2 border-white rounded-lg shadow-sm"
+								/>
+							</div>
+							<p
+								class="text-[10px] text-slate-400 font-mono"
+								id="ticketCodeDisplay"
+							></p>
+						</div>
+
+						<div class="flex gap-2 pt-2">
+							<button
+								onclick="window.print()"
+								class="flex-1 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-2.5 rounded-lg transition shadow"
+							>
+								🖨 Imprimer mon billet
+							</button>
+							<button
+								onclick="closeModal()"
+								class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-lg transition"
+							>
+								Fermer
+							</button>
+						</div>
 					</div>
 
 					<div

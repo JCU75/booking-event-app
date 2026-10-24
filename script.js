@@ -901,33 +901,24 @@ async function submitReservation(e) {
 		return;
 	}
 
-	// Appel de l'API Serverless pour envoyer l'e-mail via Nodemailer / Gmail
-	try {
-		const emailResponse = await fetch("/api/send-ticket", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				email: newRes.email,
-				nom: newRes.nom,
-				prenom: newRes.prenom,
-				eventTitle: ev.title,
-				eventDate: formatDateTime(ev.rawDate, ev.time),
-				placesCount: requestedPlaces,
-				ticketCode: ticketCode,
-			}),
-		});
-
-		if (!emailResponse.ok) {
-			console.error("Erreur lors de l'envoi de l'e-mail par le serveur");
-		}
-	} catch (err) {
-		console.error("Erreur réseau lors de l'appel de l'API email :", err);
-	}
-
 	await loadData();
 
+	// Mise à jour de l'affichage du succès avec le QR code direct
 	document.getElementById("successName").innerText =
 		newRes.prenom + " " + newRes.nom + ` (${requestedPlaces} places)`;
+
+	document.getElementById("ticketEventTitle").innerText = ev.title;
+	document.getElementById("ticketEventDate").innerText = formatDateTime(
+		ev.rawDate,
+		ev.time,
+	);
+
+	// Génération de l'image du QR code via l'API publique
+	const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticketCode}`;
+	document.getElementById("ticketQrImage").src = qrCodeUrl;
+	document.getElementById("ticketCodeDisplay").innerText =
+		`Ref: ${ticketCode.substring(0, 8).toUpperCase()}`;
+
 	document.getElementById("modalFormContainer").classList.add("hidden");
 	document.getElementById("modalSuccess").classList.remove("hidden");
 
