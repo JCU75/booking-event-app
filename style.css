@@ -1,34 +1,31 @@
 @media print {
-	/* 1. Par défaut, on masque tout le corps de la page */
+	/* Masquer tout le reste de la page */
 	body * {
 		visibility: hidden !important;
 	}
 
-	/* 2. On rend visible uniquement la zone d'impression admin existante */
-	#printSection,
-	#printSection * {
-		visibility: visible !important;
-	}
-
-	/* 3. On rend AUSSI visible la carte du ticket client et son contenu */
+	/* Rendre visible uniquement la zone du ticket */
 	.ticket-print-area,
 	.ticket-print-area * {
 		visibility: visible !important;
 	}
 
-	/* 4. On positionne proprement le ticket en haut de la page imprimée */
+	/* Forcer le positionnement et l'échelle du ticket pour qu'il tienne entièrement */
 	.ticket-print-area {
 		position: absolute !important;
 		left: 50% !important;
-		top: 20px !important;
+		top: 10mm !important;
 		transform: translateX(-50%) !important;
-		width: 100% !important;
-		max-width: 350px !important;
+		width: 90% !important;
+		max-width: 320px !important;
 		box-shadow: none !important;
 		border: 1px solid #cbd5e1 !important;
+		background-color: #ffffff !important;
+		-webkit-print-color-adjust: exact !important;
+		print-color-adjust: exact !important;
 	}
 
-	/* 5. On masque les éléments superflus (boutons, en-têtes) */
+	/* Masquer les éléments indésirables */
 	.no-print {
 		display: none !important;
 	}
