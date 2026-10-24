@@ -903,22 +903,23 @@ async function submitReservation(e) {
 
 	await loadData();
 
-	// Mise à jour de l'affichage du succès avec le QR code direct
-	document.getElementById("successName").innerText =
-		newRes.prenom + " " + newRes.nom + ` (${requestedPlaces} places)`;
+	// Population du billet officiel
+	document.getElementById("ticketParticipantName").innerText =
+		`${newRes.prenom} ${newRes.nom}`;
+	document.getElementById("ticketEventTitle").innerText =
+		`Événement : ${ev.title}`;
+	document.getElementById("ticketEventDate").innerText =
+		`📅 Date : ${formatDateTime(ev.rawDate, ev.time)}`;
+	document.getElementById("ticketPlacesCount").innerText =
+		`🎟️ Nombre de places : ${requestedPlaces}`;
 
-	document.getElementById("ticketEventTitle").innerText = ev.title;
-	document.getElementById("ticketEventDate").innerText = formatDateTime(
-		ev.rawDate,
-		ev.time,
-	);
-
-	// Génération de l'image du QR code via l'API publique
+	// QR code et référence
 	const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticketCode}`;
 	document.getElementById("ticketQrImage").src = qrCodeUrl;
 	document.getElementById("ticketCodeDisplay").innerText =
 		`Ref: ${ticketCode.substring(0, 8).toUpperCase()}`;
 
+	// Transition d'affichage
 	document.getElementById("modalFormContainer").classList.add("hidden");
 	document.getElementById("modalSuccess").classList.remove("hidden");
 

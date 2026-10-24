@@ -237,66 +237,118 @@
 					</div>
 
 					<!-- Écran de Succès & Affichage du Ticket -->
+					<!-- Écran de Succès & Billet Complet -->
 					<div
 						id="modalSuccess"
-						class="hidden text-center space-y-3 py-2"
+						class="hidden text-center space-y-3 py-1"
 					>
 						<div
-							class="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-base font-bold"
+							class="w-9 h-9 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-base font-bold"
 						>
 							✓
 						</div>
 						<h4 class="text-base font-bold text-slate-900">
 							Réservation validée !
 						</h4>
-						<p class="text-xs text-slate-600 px-2">
-							Merci
-							<span
-								id="successName"
-								class="font-semibold capitalize"
-							></span
-							>. Votre réservation est enregistrée. Présentez ce
-							QR code à l'entrée :
-						</p>
 
-						<!-- Carte Ticket intégrée et compacte pour mobile -->
+						<!-- Carte Ticket Officielle Cultura (Prête pour impression et sauvegarde) -->
 						<div
 							id="ticketCardPreview"
-							class="ticket-print-area bg-slate-50 border border-slate-200 p-3 rounded-xl max-w-[260px] mx-auto text-center space-y-1.5 shadow-inner"
+							class="ticket-print-area bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm max-w-sm mx-auto text-left"
 						>
-							<h5
-								id="ticketEventTitle"
-								class="font-bold text-xs text-[#034475] truncate"
-							></h5>
-							<p
-								id="ticketEventDate"
-								class="text-[10px] text-slate-600"
-							></p>
-							<div class="my-1 flex justify-center">
+							<!-- En-tête bleu avec logo -->
+							<div
+								class="bg-[#034475] p-3 text-white flex items-center justify-between"
+							>
+								<div>
+									<h5 class="font-bold text-sm leading-tight">
+										Cultura Saint-Aunès
+									</h5>
+									<p class="text-[10px] text-blue-200">
+										Confirmation de réservation
+									</p>
+								</div>
 								<img
-									id="ticketQrImage"
-									src=""
-									alt="QR Code Billet"
-									class="w-32 h-32 border-2 border-white rounded-lg shadow-sm object-contain"
+									src="https://www.cultura.com/media_12dd2d68ce701e23078febb779c9ab1b5490f9dd7.svg?width=750&format=svg&optimize=medium"
+									alt="Cultura Logo"
+									class="h-5 filter brightness-0 invert"
 								/>
 							</div>
-							<p
-								class="text-[10px] text-slate-400 font-mono"
-								id="ticketCodeDisplay"
-							></p>
+
+							<div
+								class="p-3.5 space-y-2.5 text-xs text-slate-700"
+							>
+								<p>
+									Bonjour
+									<strong id="ticketParticipantName"></strong
+									>,
+								</p>
+								<p class="text-[11px] text-slate-500">
+									Voici les détails de votre participation :
+								</p>
+
+								<!-- Bloc récapitulatif de l'événement -->
+								<div
+									class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1"
+								>
+									<p
+										class="font-bold text-[#034475] text-xs"
+										id="ticketEventTitle"
+									></p>
+									<p
+										class="text-[11px]"
+										id="ticketEventDate"
+									></p>
+									<p
+										class="text-[11px]"
+										id="ticketPlacesCount"
+									></p>
+								</div>
+
+								<p
+									class="text-[10px] text-center font-medium text-slate-500 pt-1"
+								>
+									Présentez ce QR code lors de votre arrivée
+									en magasin :
+								</p>
+
+								<!-- QR Code -->
+								<div
+									class="flex flex-col items-center justify-center py-1"
+								>
+									<img
+										id="ticketQrImage"
+										src=""
+										alt="QR Code Billet"
+										class="w-36 h-36 border-2 border-slate-100 p-1 rounded-xl shadow-sm bg-white"
+									/>
+									<span
+										class="text-[10px] text-slate-400 font-mono mt-1"
+										id="ticketCodeDisplay"
+									></span>
+								</div>
+
+								<!-- Pied de carte -->
+								<div
+									class="border-t border-slate-100 pt-2 text-center text-[10px] text-slate-400"
+								>
+									Cultura Saint-Aunès • Ecoparc St Aunès • 04
+									67 40 75 80
+								</div>
+							</div>
 						</div>
 
-						<!-- Boutons d'action visibles directement -->
-						<div class="flex gap-2 pt-2">
+						<!-- Boutons d'action -->
+						<div class="flex gap-2 pt-2 max-w-sm mx-auto">
 							<button
 								onclick="window.print()"
-								class="flex-1 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-2.5 rounded-lg transition shadow"
+								class="flex-1 bg-[#034475] hover:bg-[#00335a] text-white text-xs font-bold py-2.5 rounded-xl transition shadow flex items-center justify-center gap-2"
 							>
-								🖨 Imprimer / Enregistrer
+								🖨 Télécharger / Imprimer
 							</button>
 							<button
 								onclick="closeModal()"
-								class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-lg transition"
+								class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-xl transition"
 							>
 								Fermer
 							</button>
