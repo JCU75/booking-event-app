@@ -236,8 +236,7 @@
 						</form>
 					</div>
 
-					<!-- Écran de Succès & Affichage du Ticket -->
-					<!-- Écran de Succès & Billet Complet -->
+					<!-- Écran de Succès & Billet Stylisé -->
 					<div
 						id="modalSuccess"
 						class="hidden text-center space-y-3 py-1"
@@ -251,68 +250,64 @@
 							Réservation validée !
 						</h4>
 
-						<!-- Carte Ticket Officielle Cultura (Prête pour impression et sauvegarde) -->
+						<!-- Carte Ticket stylisée (Bordure élégante, fond blanc et arrondis) -->
 						<div
 							id="ticketCardPreview"
-							class="ticket-print-area bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm max-w-sm mx-auto text-left"
+							class="ticket-print-area bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm max-w-sm mx-auto text-left p-5 space-y-3 relative"
 						>
-							<!-- En-tête bleu avec logo -->
-							<div
-								class="bg-[#034475] p-3 text-white flex items-center justify-between"
-							>
-								<div>
-									<h5 class="font-bold text-sm leading-tight">
-										Cultura Saint-Aunès
-									</h5>
-									<p class="text-[10px] text-blue-200">
-										Confirmation de réservation
-									</p>
-								</div>
-								<img
-									src="https://www.cultura.com/media_12dd2d68ce701e23078febb779c9ab1b5490f9dd7.svg?width=750&format=svg&optimize=medium"
-									alt="Cultura Logo"
-									class="h-5 filter brightness-0 invert"
-								/>
+							<!-- En-tête du ticket -->
+							<div class="border-b border-slate-100 pb-3">
+								<h5 class="font-bold text-sm text-[#034475]">
+									Cultura Saint-Aunès
+								</h5>
+								<p class="text-[11px] text-slate-400">
+									Confirmation de réservation
+								</p>
 							</div>
 
-							<div
-								class="p-3.5 space-y-2.5 text-xs text-slate-700"
-							>
+							<div class="space-y-2 text-xs text-slate-700">
 								<p>
 									Bonjour
-									<strong id="ticketParticipantName"></strong
+									<strong
+										id="ticketParticipantName"
+										class="capitalize"
+									></strong
 									>,
 								</p>
 								<p class="text-[11px] text-slate-500">
 									Voici les détails de votre participation :
 								</p>
 
-								<!-- Bloc récapitulatif de l'événement -->
+								<!-- Bloc récapitulatif stylisé (Identique à l'aperçu de la modale) -->
 								<div
-									class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1"
+									class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 text-slate-700"
 								>
 									<p
 										class="font-bold text-[#034475] text-xs"
 										id="ticketEventTitle"
 									></p>
-									<p
-										class="text-[11px]"
-										id="ticketEventDate"
-									></p>
-									<p
-										class="text-[11px]"
-										id="ticketPlacesCount"
-									></p>
+									<div
+										class="flex items-center gap-2 text-[11px]"
+									>
+										<span>📅</span>
+										<span id="ticketEventDate"></span>
+									</div>
+									<div
+										class="flex items-center gap-2 text-[11px]"
+									>
+										<span>🎟️</span>
+										<span id="ticketPlacesCount"></span>
+									</div>
 								</div>
 
 								<p
-									class="text-[10px] text-center font-medium text-slate-500 pt-1"
+									class="text-[11px] text-center font-medium text-slate-600 pt-1"
 								>
 									Présentez ce QR code lors de votre arrivée
 									en magasin :
 								</p>
 
-								<!-- QR Code -->
+								<!-- QR Code centré -->
 								<div
 									class="flex flex-col items-center justify-center py-1"
 								>
@@ -320,15 +315,15 @@
 										id="ticketQrImage"
 										src=""
 										alt="QR Code Billet"
-										class="w-36 h-36 border-2 border-slate-100 p-1 rounded-xl shadow-sm bg-white"
+										class="w-36 h-36 border-2 border-slate-100 p-1 rounded-xl shadow-sm bg-white object-contain"
 									/>
 									<span
-										class="text-[10px] text-slate-400 font-mono mt-1"
+										class="text-[10px] text-slate-400 font-mono mt-1.5"
 										id="ticketCodeDisplay"
 									></span>
 								</div>
 
-								<!-- Pied de carte -->
+								<!-- Pied de page du ticket -->
 								<div
 									class="border-t border-slate-100 pt-2 text-center text-[10px] text-slate-400"
 								>

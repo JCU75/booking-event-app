@@ -903,15 +903,17 @@ async function submitReservation(e) {
 
 	await loadData();
 
-	// Population du billet officiel
+	// Population du billet stylisé avec les textes propres (sans double émoji)
 	document.getElementById("ticketParticipantName").innerText =
 		`${newRes.prenom} ${newRes.nom}`;
 	document.getElementById("ticketEventTitle").innerText =
 		`Événement : ${ev.title}`;
-	document.getElementById("ticketEventDate").innerText =
-		`📅 Date : ${formatDateTime(ev.rawDate, ev.time)}`;
+	document.getElementById("ticketEventDate").innerText = formatDateTime(
+		ev.rawDate,
+		ev.time,
+	);
 	document.getElementById("ticketPlacesCount").innerText =
-		`🎟️ Nombre de places : ${requestedPlaces}`;
+		`Nombre de places : ${requestedPlaces}`;
 
 	// QR code et référence
 	const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticketCode}`;
