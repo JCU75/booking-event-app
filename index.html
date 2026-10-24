@@ -69,13 +69,14 @@
 		<!-- MODALE DE RÉSERVATION CLIENT -->
 		<div
 			id="eventModal"
-			class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4"
+			class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-3"
 		>
 			<div
-				class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all"
+				class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col max-h-[95vh] transform transition-all"
 			>
+				<!-- En-tête fixe de la modale -->
 				<div
-					class="bg-[#034475] p-6 text-white flex justify-between items-start"
+					class="bg-[#034475] p-4 text-white flex justify-between items-start flex-shrink-0"
 				>
 					<div>
 						<span
@@ -85,7 +86,7 @@
 						>
 						<h3
 							id="modalTitle"
-							class="text-xl font-bold mt-2 leading-snug"
+							class="text-lg font-bold mt-1 leading-snug"
 						>
 							Titre de l'événement
 						</h3>
@@ -98,19 +99,20 @@
 					</button>
 				</div>
 
-				<div class="p-6 space-y-6">
+				<!-- Corps de la modale avec défilement vertical (overflow-y-auto) -->
+				<div class="p-5 space-y-4 overflow-y-auto flex-grow">
 					<p
 						id="modalDesc"
-						class="text-sm text-slate-600 leading-relaxed"
+						class="text-xs sm:text-sm text-slate-600 leading-relaxed"
 					></p>
 
 					<div
-						class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-sm text-slate-700"
+						class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 text-xs sm:text-sm text-slate-700"
 					>
-						<div class="flex items-center gap-3">
+						<div class="flex items-center gap-2">
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
-								class="h-5 w-5 text-blue-600"
+								class="h-4 w-4 text-blue-600 flex-shrink-0"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -124,10 +126,10 @@
 							</svg>
 							<span id="modalDate" class="font-medium">Date</span>
 						</div>
-						<div class="flex items-center gap-3">
+						<div class="flex items-center gap-2">
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
-								class="h-5 w-5 text-blue-600"
+								class="h-4 w-4 text-blue-600 flex-shrink-0"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -151,13 +153,12 @@
 							class="flex items-center justify-between pt-2 border-t border-slate-200"
 						>
 							<span
-								class="text-xs text-slate-500 uppercase font-semibold"
+								class="text-[11px] text-slate-500 uppercase font-semibold"
 								>Disponibilité :</span
 							>
 							<span
-								class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full"
-								><span id="modalPlaces">10</span> places
-								restantes /
+								class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full"
+								><span id="modalPlaces">10</span> places /
 								<span id="modalMaxPlaces">10</span></span
 							>
 						</div>
@@ -165,7 +166,7 @@
 
 					<!-- Formulaire de Réservation -->
 					<div id="modalFormContainer">
-						<h4 class="text-sm font-bold text-slate-800 mb-3">
+						<h4 class="text-xs font-bold text-slate-800 mb-2">
 							Réserver vos places
 						</h4>
 						<form
@@ -174,7 +175,7 @@
 							class="space-y-3"
 						>
 							<input type="hidden" id="modalEventId" />
-							<div class="grid grid-cols-2 gap-3">
+							<div class="grid grid-cols-2 gap-2">
 								<div>
 									<label
 										class="block text-[10px] font-bold text-slate-600 uppercase mb-1"
@@ -185,7 +186,7 @@
 										id="nom"
 										required
 										placeholder="Votre nom"
-										class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+										class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
 									/>
 								</div>
 								<div>
@@ -198,7 +199,7 @@
 										id="prenom"
 										required
 										placeholder="Votre prénom"
-										class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+										class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
 									/>
 								</div>
 							</div>
@@ -212,39 +213,36 @@
 									id="email"
 									required
 									placeholder="votre.email@exemple.fr"
-									class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+									class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
 								/>
 							</div>
-							<!-- Conteneur dynamique (Téléphone, Âge et Nombre de places injectés par script.js) -->
+							<!-- Conteneur dynamique (Téléphone, Âge, Places) -->
 							<div
-								class="grid grid-cols-1 gap-3"
+								class="grid grid-cols-1 gap-2"
 								id="ageFieldContainer"
 							></div>
 							<p
-								class="text-[11px] text-gray-500 text-justify leading-relaxed mb-4 px-1"
+								class="text-[10px] text-gray-500 text-justify leading-relaxed px-1"
 							>
-								Les informations recueillies font l'objet d'un
-								traitement informatisé par Cultura Saint-Aunès
-								destiné à la gestion de votre réservation et de
-								votre participation à l'événement. Conformément
-								au RGPD, vous disposez d'un droit d'accès, de
-								rectification et de suppression de vos données.
+								Traitement informatisé par Cultura Saint-Aunès
+								pour la gestion de votre réservation (RGPD).
 							</p>
 							<button
 								type="submit"
-								class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-md mt-2"
+								class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-xs sm:text-sm transition shadow-md mt-1"
 							>
 								Confirmer ma réservation
 							</button>
 						</form>
 					</div>
 
+					<!-- Écran de Succès & Affichage du Ticket -->
 					<div
 						id="modalSuccess"
 						class="hidden text-center space-y-3 py-2"
 					>
 						<div
-							class="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-lg font-bold"
+							class="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-base font-bold"
 						>
 							✓
 						</div>
@@ -257,29 +255,29 @@
 								id="successName"
 								class="font-semibold capitalize"
 							></span
-							>. Votre réservation est enregistrée. Veuillez
-							présenter ce QR code à l'entrée :
+							>. Votre réservation est enregistrée. Présentez ce
+							QR code à l'entrée :
 						</p>
 
-						<!-- Zone d'affichage du Ticket et du QR Code -->
+						<!-- Carte Ticket intégrée et compacte pour mobile -->
 						<div
 							id="ticketCardPreview"
-							class="bg-slate-50 border border-slate-200 p-4 rounded-xl max-w-xs mx-auto text-center space-y-2"
+							class="bg-slate-50 border border-slate-200 p-3 rounded-xl max-w-[260px] mx-auto text-center space-y-1.5 shadow-inner"
 						>
 							<h5
 								id="ticketEventTitle"
-								class="font-bold text-xs text-[#034475]"
+								class="font-bold text-xs text-[#034475] truncate"
 							></h5>
 							<p
 								id="ticketEventDate"
-								class="text-[11px] text-slate-600"
+								class="text-[10px] text-slate-600"
 							></p>
-							<div class="my-2 flex justify-center">
+							<div class="my-1 flex justify-center">
 								<img
 									id="ticketQrImage"
 									src=""
 									alt="QR Code Billet"
-									class="w-36 h-36 border-2 border-white rounded-lg shadow-sm"
+									class="w-32 h-32 border-2 border-white rounded-lg shadow-sm object-contain"
 								/>
 							</div>
 							<p
@@ -288,12 +286,13 @@
 							></p>
 						</div>
 
+						<!-- Boutons d'action visibles directement -->
 						<div class="flex gap-2 pt-2">
 							<button
 								onclick="window.print()"
 								class="flex-1 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-2.5 rounded-lg transition shadow"
 							>
-								🖨 Imprimer mon billet
+								🖨 Imprimer / Enregistrer
 							</button>
 							<button
 								onclick="closeModal()"
@@ -313,7 +312,7 @@
 						>
 							✕
 						</div>
-						<h4 class="text-lg font-bold text-slate-900">
+						<h4 class="text-base font-bold text-slate-900">
 							Événement Complet
 						</h4>
 						<p class="text-xs text-slate-600">
