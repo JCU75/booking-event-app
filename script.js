@@ -118,18 +118,22 @@ function createEventCard(ev) {
 		? "Victime de son succès"
 		: "Réserver une place";
 
+	const placesLabel = isComplet
+		? "Complet"
+		: `${restantes} place${restantes > 1 ? "s" : ""} restante${restantes > 1 ? "s" : ""}`;
+
 	const buttonClass = isComplet
 		? "w-full bg-gray-200 border-2 border-red-200 font-['Poppins'] text-red-600 font-bold py-2.5 rounded-xl text-base transition-colors duration-200 shadow-sm flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed"
 		: "w-full bg-white border-2 border-[#034475] font-['Poppins'] text-[#034475] group-hover:bg-[#034475] group-hover:text-white font-bold py-2.5 rounded-xl text-base transition-colors duration-200 shadow-sm flex items-center justify-center gap-1.5";
 
 	return `
-		<div onclick="openModal('${ev.id}')" class="group min-w-[300px] sm:min-w-[320px] w-[320px] h-[500px] bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-slate-200 overflow-hidden flex flex-col justify-between group flex-shrink-0">
-			<div class="relative h-44 w-full overflow-hidden bg-slate-200">
+		<div onclick="openModal('${ev.id}')" class="group w-full h-auto md:h-[500px] md:min-w-[320px] md:w-[320px] md:flex-shrink-0 bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-slate-200 overflow-hidden flex flex-col justify-between">
+			<div class="relative h-40 sm:h-44 w-full overflow-hidden bg-slate-200">
 				<img src="${imageUrl}" alt="${ev.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
 				<span class="absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-white/90 backdrop-blur-sm border ${styles.badgeColor} shadow-sm">
 					${styles.label}
 				</span>
-				<span class="absolute top-3 right-3 text-xs font-bold ${isComplet ? "text-red-500 bg-red-50" : "text-emerald-600 bg-emerald-50"} px-3 py-1 rounded-full uppercase">${isComplet ? "Complet" : restantes + " places restantes"}</span>
+				<span class="absolute top-3 right-3 text-xs font-bold ${isComplet ? "text-red-500 bg-red-50" : "text-emerald-600 bg-emerald-50"} px-3 py-1 rounded-full uppercase">${placesLabel}</span>
 			</div>
 			<div class="p-5 flex-grow flex flex-col justify-between space-y-3">
 				<div>
@@ -198,22 +202,47 @@ async function router() {
 		headerActions.innerHTML = `<button onclick="window.location.hash='#admin'" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition">← Retour au tableau de bord</button>`;
 		renderScanView(main);
 	} else {
-		headerActions.innerHTML = `<a href="#admin" class="font-['Poppins'] text-xs font-bold text-[#00447F] hover:text-[#00447F] bg-[#00447F] px-3 py-2 rounded-lg transition border border-[#00447F]">Espace Collaborateur</a>`;
+		headerActions.innerHTML = `
+			<a href="#admin"
+			class="text-white/30 hover:text-white active:text-white text-base px-2 py-1 transition-colors duration-200"
+			title="Espace collaborateur"
+			aria-label="Espace collaborateur">
+				<i class="fa-solid fa-lock text-xs sm:text-sm"></i>
+			</a>
+		`;
 		renderClientView(main);
 	}
 }
 
 function renderClientView(container) {
 	container.innerHTML = `
-		<div class="max-w-6xl mx-auto pl-0 pr-6 mb-10 flex flex-col md:flex-row md:items-end justify-between">
+		<div class="max-w-6xl mx-auto px-4 sm:px-6 md:pl-0 mb-8 md:mb-10 flex flex-col md:flex-row md:items-end justify-between">
 			<div>
-				<span class="text-base font-normal font-['Poppins'] tracking-normal text-[#00417A]"><i class="fa-regular fa-heart"></i>     Partageons nos passions</span>
-				<h2 class="text-[40px] font-extrabold text-[#00417A] mt-1">Vibrez avec nos événements</h2>
+				<span class="text-sm md:text-base font-normal font-['Poppins'] tracking-normal text-[#00417A]">
+					<i class="fa-regular fa-heart"></i> Partageons nos passions
+				</span>
+				<h2 class="text-2xl sm:text-3xl md:text-[40px] font-extrabold text-[#00417A] mt-1 leading-tight">
+					Vibrez avec nos événements
+				</h2>
+				<p class="text-xs sm:text-sm text-slate-500 mt-1">${events.length} événement${events.length > 1 ? "s" : ""} à venir</p>
 			</div>
 		</div>
+
+		<!-- Conteneur : grille sur mobile, carrousel sur desktop -->
 		<div class="relative w-full">
-			<div id="clientEventsScrollContainer" class="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth py-2 pl-6 md:pl-[max(1.5rem,calc((100vw-72rem)/2))] pr-6"></div>
-			<div class="flex justify-center items-center gap-3 mt-6">
+			<div
+				id="clientEventsScrollContainer"
+				class="
+					grid grid-cols-1 sm:grid-cols-2 gap-6
+					px-4 sm:px-6
+					md:flex md:gap-6 md:overflow-x-auto md:no-scrollbar md:scroll-smooth
+					md:py-2
+					md:pl-[max(1.5rem,calc((100vw-72rem)/2))] md:pr-6
+				"
+			></div>
+
+			<!-- Flèches visibles uniquement à partir de md -->
+			<div class="hidden md:flex justify-center items-center gap-3 mt-6">
 				<button onclick="slideCarousel('gauche')" class="w-10 h-10 rounded-full border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-700 shadow-sm transition active:scale-95 font-bold">←</button>
 				<button onclick="slideCarousel('droite')" class="w-10 h-10 rounded-full border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-700 shadow-sm transition active:scale-95 font-bold">→</button>
 			</div>
@@ -820,7 +849,8 @@ function openModal(eventId) {
 		ev.rawDate,
 		ev.time,
 	);
-	document.getElementById("modalPlaces").innerText = restantes;
+	document.getElementById("modalPlacesLabel").innerText =
+		`${restantes} place${restantes > 1 ? "s" : ""}`;
 	document.getElementById("modalMaxPlaces").innerText = ev.maxPlaces;
 	document.getElementById("modalEventId").value = ev.id;
 
@@ -833,12 +863,26 @@ function openModal(eventId) {
 	const ageContainer = document.getElementById("ageFieldContainer");
 	if (ev.askAge) {
 		ageContainer.innerHTML = `
-			<div class="grid grid-cols-3 gap-2">
-				<div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Téléphone</label><input type="tel" id="telephone" required placeholder="06..." class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm"></div>
-				<div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Âge</label><input type="number" id="age" required min="1" max="120" class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm"></div>
-				<div><label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Places</label><select id="placesCount" class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm">${optionsHtml}</select></div>
-			</div>
-		`;
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Téléphone</label>
+                <input type="tel" id="telephone" required inputmode="tel" placeholder="06..."
+                    class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Âge</label>
+                <input type="number" id="age" required min="1" max="120"
+                    class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm">
+            </div>
+            <div class="col-span-2 sm:col-span-1">
+                <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Places</label>
+                <select id="placesCount"
+                    class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-sm">
+                    ${optionsHtml}
+                </select>
+            </div>
+        </div>
+    `;
 	} else {
 		ageContainer.innerHTML = `
 			<div class="grid grid-cols-2 gap-3">
@@ -850,6 +894,8 @@ function openModal(eventId) {
 
 	document.getElementById("reservationForm").reset();
 	document.getElementById("modalSuccess").classList.add("hidden");
+	document.getElementById("modalDesc").classList.remove("hidden");
+	document.getElementById("modalInfoBox").classList.remove("hidden");
 
 	if (restantes <= 0) {
 		document.getElementById("modalFormContainer").classList.add("hidden");
@@ -923,9 +969,38 @@ async function submitReservation(e) {
 
 	// Transition d'affichage
 	document.getElementById("modalFormContainer").classList.add("hidden");
+	// On cache les infos redondantes
+	document.getElementById("modalDesc").classList.add("hidden");
+	document.getElementById("modalInfoBox").classList.add("hidden");
 	document.getElementById("modalSuccess").classList.remove("hidden");
 
 	const nouvellesPrises = getTakenSeats(currentActiveEventId);
-	document.getElementById("modalPlaces").innerText =
-		ev.maxPlaces - nouvellesPrises;
+	const nouvellesRestantes = ev.maxPlaces - nouvellesPrises;
+	document.getElementById("modalPlacesLabel").innerText =
+		`${nouvellesRestantes} place${nouvellesRestantes > 1 ? "s" : ""}`;
+}
+function printTicket() {
+	// 1. On récupère l'événement en cours
+	const ev = events.find((e) => e.id === currentActiveEventId);
+	if (!ev) return;
+
+	// 2. On sauvegarde le titre actuel de la page
+	const originalTitle = document.title;
+
+	// 3. On crée un nom de fichier propre
+	// On remplace les espaces et caractères spéciaux par des tirets bas
+	const safeTitle = ev.title.replace(/[^a-zA-Z0-9]/g, "_");
+	const dateStr = ev.rawDate || "";
+
+	// 4. On change le titre de la page (qui deviendra le nom du PDF)
+	document.title = `Billet_Cultura_${safeTitle}_${dateStr}`;
+
+	// 5. On lance l'impression
+	window.print();
+
+	// 6. On restaure le titre original après un court délai
+	// (le temps que la boîte de dialogue d'impression s'ouvre)
+	setTimeout(() => {
+		document.title = originalTitle;
+	}, 1000);
 }

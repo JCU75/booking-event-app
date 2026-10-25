@@ -55,9 +55,9 @@
 
 	/* 1. Frères de #modalSuccess (description, bloc info, form, complet) */
 	#modalDesc,
+	#modalInfoBox,
 	#modalFormContainer,
-	#modalComplet,
-	#eventModal .overflow-y-auto > div.bg-slate-50 {
+	#modalComplet {
 		display: none !important;
 	}
 

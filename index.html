@@ -31,11 +31,11 @@
 	>
 		<!-- En-tête Commun -->
 		<header
-			class="bg-gradient-to-r from-[#055BA7] to-[#00417A] border-b border-slate-700 px-6 py-4 shadow-md sticky top-0 z-10 no-print"
+			class="bg-gradient-to-r from-[#055BA7] to-[#00417A] border-b border-slate-700 px-3 sm:px-6 py-3 sm:py-4 shadow-md sticky top-0 z-10 no-print"
 		>
-			<div class="w-full px-0 flex justify-between items-center">
+			<div class="w-full flex justify-between items-center gap-2">
 				<div
-					class="flex items-center space-x-4 cursor-pointer"
+					class="flex items-center gap-2 sm:gap-4 min-w-0 flex-1 cursor-pointer"
 					onclick="
 						window.location.hash = '';
 						router();
@@ -44,16 +44,22 @@
 					<img
 						src="https://www.cultura.com/media_12dd2d68ce701e23078febb779c9ab1b5490f9dd7.svg?width=750&format=svg&optimize=medium"
 						alt="Cultura Logo"
-						class="h-8 object-contain filter brightness-0 invert"
+						class="h-7 sm:h-8 object-contain filter brightness-0 invert flex-shrink-0"
 					/>
-					<div class="border-l border-blue-400 pl-4">
-						<h1 class="text-white font-bold text-lg">
+					<div class="border-l border-blue-400 pl-2 sm:pl-4 min-w-0">
+						<h1
+							class="text-white font-bold text-sm sm:text-lg truncate leading-tight"
+						>
 							Agenda des Événements
 						</h1>
-						<p class="text-xs text-blue-200">Cultura Saint-Aunès</p>
+						<p
+							class="text-[10px] sm:text-xs text-blue-200 truncate"
+						>
+							Cultura Saint-Aunès
+						</p>
 					</div>
 				</div>
-				<div id="headerActions"></div>
+				<div id="headerActions" class="flex-shrink-0"></div>
 			</div>
 		</header>
 
@@ -107,6 +113,7 @@
 					></p>
 
 					<div
+						id="modalInfoBox"
 						class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 text-xs sm:text-sm text-slate-700"
 					>
 						<div class="flex items-center gap-2">
@@ -158,9 +165,10 @@
 							>
 							<span
 								class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full"
-								><span id="modalPlaces">10</span> places /
-								<span id="modalMaxPlaces">10</span></span
 							>
+								<span id="modalPlacesLabel">10 places</span> /
+								<span id="modalMaxPlaces">10</span>
+							</span>
 						</div>
 					</div>
 
@@ -212,6 +220,7 @@
 									type="email"
 									id="email"
 									required
+									inputmode="email"
 									placeholder="votre.email@exemple.fr"
 									class="w-full bg-slate-50 border border-slate-300 p-2 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
 								/>
@@ -261,7 +270,7 @@
 									Cultura Saint-Aunès
 								</h5>
 								<p class="text-[11px] text-slate-400">
-									Confirmation de réservation
+									Billet événement
 								</p>
 							</div>
 
@@ -289,13 +298,23 @@
 									<div
 										class="flex items-center gap-2 text-[11px]"
 									>
-										<span>📅</span>
+										<span
+											><i
+												class="fa-solid fa-calendar-days"
+												style="color: rgb(20, 92, 221)"
+											></i
+										></span>
 										<span id="ticketEventDate"></span>
 									</div>
 									<div
 										class="flex items-center gap-2 text-[11px]"
 									>
-										<span>🎟️</span>
+										<span
+											><i
+												class="fa-solid fa-ticket"
+												style="color: rgb(20, 92, 221)"
+											></i
+										></span>
 										<span id="ticketPlacesCount"></span>
 									</div>
 								</div>
@@ -327,8 +346,8 @@
 								<div
 									class="border-t border-slate-100 pt-2 text-center text-[10px] text-slate-400"
 								>
-									Cultura Saint-Aunès • Ecoparc St Aunès • 04
-									67 40 75 80
+									Ecoparc St Aunès • 34130 Saint-Aunès • 04 67
+									40 75 80
 								</div>
 							</div>
 						</div>
@@ -336,7 +355,7 @@
 						<!-- Boutons d'action -->
 						<div class="flex gap-2 pt-2 max-w-sm mx-auto">
 							<button
-								onclick="window.print()"
+								onclick="printTicket()"
 								class="flex-1 bg-[#034475] hover:bg-[#00335a] text-white text-xs font-bold py-2.5 rounded-xl transition shadow flex items-center justify-center gap-2"
 							>
 								🖨 Télécharger / Imprimer
