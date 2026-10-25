@@ -1004,68 +1004,21 @@ function printTicket() {
 	const ev = events.find((e) => e.id === currentActiveEventId);
 	if (!ev) return;
 
-	// 1. On récupère le code HTML du ticket
-	const ticketHTML = document.getElementById("ticketCardPreview").outerHTML;
+	// Sauvegarde du titre actuel
+	const originalTitle = document.title;
 
-	// 2. On crée un nom de fichier propre
+	// Création du nom du fichier
 	const safeTitle = ev.title.replace(/[^a-zA-Z0-9]/g, "_");
 	const dateStr = ev.rawDate || "";
 
-	// 3. On récupère les scripts CSS (Tailwind et FontAwesome) pour que le ticket soit bien stylisé
-	const links = Array.from(
-		document.querySelectorAll(
-			'link[rel="stylesheet"], script[src*="tailwind"]',
-		),
-	)
-		.map((el) => el.outerHTML)
-		.join("");
+	// Changement du titre (qui deviendra le nom du PDF sur mobile)
+	document.title = `Billet_Cultura_${safeTitle}_${dateStr}`;
 
-	// 4. On ouvre une nouvelle fenêtre vierge
-	const printWindow = window.open("", "_blank");
+	// Lancement de l'impression
+	window.print();
 
-	// 5. On écrit une page HTML ultra-minimaliste avec juste le ticket
-	printWindow.document.write(`
-		<!DOCTYPE html>
-		<html lang="fr">
-		<head>
-			<meta charset="UTF-8">
-			<meta name="viewport" content="width=device-width, initial-scale=1.0">
-			<title>Billet_Cultura_${safeTitle}_${dateStr}</title>
-			${links}
-			<style>
-				/* On force la page à avoir 0 marge pour éviter la 2ème page vide */
-				@page { margin: 10mm; size: auto; }
-				body { 
-					margin: 0; 
-					padding: 0; 
-					display: flex; 
-					justify-content: center; 
-					align-items: flex-start;
-					background: white;
-					-webkit-print-color-adjust: exact;
-					print-color-adjust: exact;
-				}
-				/* On donne une taille fixe au ticket pour qu'il soit bien lisible */
-				#ticketCardPreview { 
-					width: 100% !important; 
-					max-width: 340px !important; 
-					margin: 0 !important;
-				}
-			</style>
-		</head>
-		<body>
-			${ticketHTML}
-		</body>
-		</html>
-	`);
-
-	printWindow.document.close();
-
-	// 6. On attend 500ms que le CSS (Tailwind) se charge, puis on imprime
+	// Restauration du titre après l'impression
 	setTimeout(() => {
-		printWindow.focus();
-		printWindow.print();
-		// On ferme la fenêtre une fois l'impression terminée
-		printWindow.onafterprint = () => printWindow.close();
-	}, 500);
+		document.title = originalTitle;
+	}, 1000);
 }

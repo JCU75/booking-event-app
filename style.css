@@ -1,24 +1,26 @@
 @media print {
 	@page {
-		margin: 8mm;
+		margin: 10mm;
 		size: auto;
 	}
 
+	/* 1. Neutraliser TOUTES les hauteurs d'écran pour éviter la 2ème page vide */
 	html,
 	body {
 		height: auto !important;
+		min-height: 0 !important; /* Tue le min-h-screen */
 		overflow: visible !important;
 		margin: 0 !important;
 		padding: 0 !important;
 		background: #fff !important;
 	}
 
-	/* Masquer tout sauf la modale */
+	/* 2. Masquer tout sauf la modale */
 	body > *:not(#eventModal) {
 		display: none !important;
 	}
 
-	/* Neutraliser la modale (fixed → static) */
+	/* 3. Neutraliser la modale */
 	#eventModal {
 		display: block !important;
 		position: static !important;
@@ -28,6 +30,7 @@
 		margin: 0 !important;
 		backdrop-filter: none !important;
 	}
+
 	#eventModal > div {
 		display: block !important;
 		max-height: none !important;
@@ -37,31 +40,28 @@
 		border-radius: 0 !important;
 		box-shadow: none !important;
 		margin: 0 !important;
-	}
-	/* En-tête bleu de la modale */
-	#eventModal > div > div:first-child {
-		display: none !important;
+		padding: 0 !important;
 	}
 
-	/* Neutraliser le conteneur scrollable */
+	/* 4. Neutraliser le conteneur scrollable */
 	#eventModal .overflow-y-auto {
 		display: block !important;
 		max-height: none !important;
 		overflow: visible !important;
 		padding: 0 !important;
+		margin: 0 !important;
 	}
 
-	/* ====== MASQUER TOUT SAUF LE TICKET ====== */
-
-	/* 1. Frères de #modalSuccess (description, bloc info, form, complet) */
+	/* 5. Masquer le formulaire, la description, etc. */
 	#modalDesc,
 	#modalInfoBox,
 	#modalFormContainer,
-	#modalComplet {
+	#modalComplet,
+	#eventModal > div > div:first-child {
 		display: none !important;
 	}
 
-	/* 2. Enfants de #modalSuccess sauf le ticket (✓, titre, boutons) */
+	/* 6. Masquer le titre "Réservation validée" et les boutons */
 	#modalSuccess > *:not(#ticketCardPreview) {
 		display: none !important;
 	}
@@ -73,13 +73,12 @@
 		text-align: center !important;
 	}
 
-	/* ====== STYLE DU TICKET ====== */
-
+	/* 7. Le Ticket : on le force à prendre une taille lisible */
 	#ticketCardPreview {
 		display: block !important;
 		position: static !important;
 		width: 100% !important;
-		max-width: 340px !important;
+		max-width: 380px !important; /* Taille idéale pour un ticket */
 		margin: 0 auto !important;
 		border: 1px solid #cbd5e1 !important;
 		box-shadow: none !important;
