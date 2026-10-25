@@ -263,7 +263,7 @@
 						<!-- Carte Ticket stylisée -->
 						<div
 							id="ticketCardPreview"
-							class="ticket-print-area bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm max-w-sm mx-auto text-left p-5 space-y-3 relative"
+							class="ticket-print-area bg-white border border-slate-200 border-t-[6px] border-t-[#034475] rounded-2xl overflow-hidden shadow-sm max-w-sm mx-auto text-left p-5 space-y-3 relative"
 						>
 							<!-- En-tête fusionné avec le nom du participant -->
 							<div
@@ -271,11 +271,13 @@
 							>
 								<div>
 									<h5
-										class="font-bold text-sm text-[#034475]"
+										class="font-bold text-base text-[#034475]"
 									>
 										Cultura Saint-Aunès
 									</h5>
-									<p class="text-[11px] text-slate-400">
+									<p
+										class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold mt-0.5"
+									>
 										Billet événement
 									</p>
 								</div>
@@ -294,10 +296,10 @@
 							<div class="space-y-3 text-xs text-slate-700">
 								<!-- Bloc récapitulatif stylisé -->
 								<div
-									class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1.5 text-slate-700"
+									class="bg-blue-50/50 p-3 rounded-xl border border-blue-100 space-y-1.5 text-slate-700"
 								>
 									<p
-										class="font-bold text-[#034475] text-xs"
+										class="font-bold text-[#034475] text-sm mb-1"
 										id="ticketEventTitle"
 									></p>
 									<div
@@ -306,10 +308,13 @@
 										<span
 											><i
 												class="fa-solid fa-calendar-days"
-												style="color: rgb(20, 92, 221)"
+												style="color: #034475"
 											></i
 										></span>
-										<span id="ticketEventDate"></span>
+										<span
+											id="ticketEventDate"
+											class="font-medium"
+										></span>
 									</div>
 									<div
 										class="flex items-center gap-2 text-[11px]"
@@ -317,40 +322,53 @@
 										<span
 											><i
 												class="fa-solid fa-ticket"
-												style="color: rgb(20, 92, 221)"
+												style="color: #034475"
 											></i
 										></span>
-										<span id="ticketPlacesCount"></span>
+										<span
+											id="ticketPlacesCount"
+											class="font-medium"
+										></span>
 									</div>
 								</div>
 
-								<!-- QR Code centré et compacté -->
+								<!-- QR Code centré et mis en valeur -->
 								<div
-									class="flex flex-col items-center justify-center pt-1 pb-1"
+									class="flex flex-col items-center justify-center pt-2 pb-1"
 								>
 									<p
-										class="text-[10px] text-center font-medium text-slate-500 mb-1"
+										class="text-[10px] text-center font-bold text-[#034475] mb-2 uppercase tracking-wide"
 									>
-										Présentez ce QR code à l'entrée :
+										À présenter à l'entrée
 									</p>
-									<img
-										id="ticketQrImage"
-										src=""
-										alt="QR Code Billet"
-										class="w-32 h-32 border-2 border-slate-100 p-1 rounded-xl shadow-sm bg-white object-contain"
-									/>
+
+									<!-- Cadre bleu autour du QR Code -->
+									<div
+										class="p-1.5 border-2 border-[#034475] rounded-2xl bg-white shadow-sm"
+									>
+										<img
+											id="ticketQrImage"
+											src=""
+											alt="QR Code Billet"
+											class="w-32 h-32 rounded-xl object-contain"
+										/>
+									</div>
+
 									<span
-										class="text-[10px] text-slate-400 font-mono mt-1"
+										class="text-[10px] text-slate-400 font-mono mt-2 bg-slate-100 px-2 py-0.5 rounded-full"
 										id="ticketCodeDisplay"
 									></span>
 								</div>
 
-								<!-- Pied de page du ticket -->
+								<!-- Pied de page du ticket avec effet pointillé -->
 								<div
-									class="border-t border-slate-100 pt-2 text-center text-[10px] text-slate-400"
+									class="border-t-2 border-dashed border-slate-200 pt-3 text-center text-[10px] text-slate-500 font-medium"
 								>
-									Ecoparc St Aunès • 34130 Saint-Aunès • 04 67
-									40 75 80
+									Ecoparc St Aunès • 34130 Saint-Aunès<br />
+									<span
+										class="text-[#034475] font-bold mt-0.5 block"
+										>04 67 40 75 80</span
+									>
 								</div>
 							</div>
 						</div>

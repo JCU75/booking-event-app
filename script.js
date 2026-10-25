@@ -177,7 +177,14 @@ async function router() {
 			window.location.hash = "#admin";
 			return;
 		}
-		headerActions.innerHTML = `<button onclick="window.location.hash='#admin'" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition">← Retour au tableau de bord</button>`;
+		headerActions.innerHTML = `
+			<button onclick="window.location.hash='#admin'" 
+					class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition flex items-center justify-center gap-2" 
+					title="Retour au tableau de bord">
+				<i class="fa-solid fa-arrow-left"></i>
+				<span class="hidden sm:inline">Retour au tableau de bord</span>
+			</button>
+`;
 		renderCreateEventView(main);
 	} else if (hash.startsWith("#admin/edit/")) {
 		if (!isAdminLoggedIn) {
@@ -192,14 +199,28 @@ async function router() {
 			window.location.hash = "#admin";
 			return;
 		}
-		headerActions.innerHTML = `<button onclick="window.location.hash='#admin'" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition">← Retour au tableau de bord</button>`;
+		headerActions.innerHTML = `
+			<button onclick="window.location.hash='#admin'" 
+					class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition flex items-center justify-center gap-2" 
+					title="Retour au tableau de bord">
+				<i class="fa-solid fa-arrow-left"></i>
+				<span class="hidden sm:inline">Retour au tableau de bord</span>
+			</button>
+`;
 		renderManageEventsView(main);
 	} else if (hash === "#admin/scan") {
 		if (!isAdminLoggedIn) {
 			window.location.hash = "#admin";
 			return;
 		}
-		headerActions.innerHTML = `<button onclick="window.location.hash='#admin'" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition">← Retour au tableau de bord</button>`;
+		headerActions.innerHTML = `
+			<button onclick="window.location.hash='#admin'" 
+					class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition flex items-center justify-center gap-2" 
+					title="Retour au tableau de bord">
+				<i class="fa-solid fa-arrow-left"></i>
+				<span class="hidden sm:inline">Retour au tableau de bord</span>
+			</button>
+`;
 		renderScanView(main);
 	} else {
 		headerActions.innerHTML = `
