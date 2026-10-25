@@ -1,31 +1,93 @@
 @media print {
-	/* Masquer tout le reste de la page */
-	body * {
-		visibility: hidden !important;
+	@page {
+		margin: 10mm;
+		size: auto;
 	}
 
-	/* Rendre visible uniquement la zone du ticket */
-	.ticket-print-area,
-	.ticket-print-area * {
-		visibility: visible !important;
+	html,
+	body {
+		height: auto !important;
+		overflow: visible !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		background: #fff !important;
 	}
 
-	/* Forcer le positionnement et l'échelle du ticket pour qu'il tienne entièrement */
+	/* 1. Masquer tout ce qui n'est pas la modale (header, footer, main…) */
+	body > *:not(#eventModal) {
+		display: none !important;
+	}
+
+	/* 2. Neutraliser les contraintes de la modale */
+	#eventModal {
+		display: block !important;
+		position: static !important;
+		inset: auto !important;
+		background: transparent !important;
+		padding: 0 !important;
+		margin: 0 !important;
+		backdrop-filter: none !important;
+	}
+
+	#eventModal > div {
+		display: block !important;
+		max-height: none !important;
+		max-width: none !important;
+		overflow: visible !important;
+		border-radius: 0 !important;
+		box-shadow: none !important;
+		margin: 0 !important;
+	}
+
+	/* 3. Cacher l'en-tête bleu de la modale */
+	#eventModal > div > div:first-child {
+		display: none !important;
+	}
+
+	/* 4. Désactiver le scroll + hauteur max du corps de modale */
+	#eventModal .overflow-y-auto {
+		display: block !important;
+		max-height: none !important;
+		overflow: visible !important;
+		padding: 0 !important;
+	}
+
+	/* 5. Cacher formulaire et écran "complet" */
+	#modalFormContainer,
+	#modalComplet {
+		display: none !important;
+	}
+
+	/* 6. Afficher uniquement le ticket dans l'écran de succès */
+	#modalSuccess {
+		display: block !important;
+		text-align: center !important;
+		padding: 0 !important;
+	}
+	#modalSuccess > *:not(.ticket-print-area) {
+		display: none !important; /* cache le ✓, le titre, les boutons */
+	}
+
+	/* 7. Style du ticket : plus de position absolute, plus d'overflow */
 	.ticket-print-area {
-		position: absolute !important;
-		left: 50% !important;
-		top: 10mm !important;
-		transform: translateX(-50%) !important;
-		width: 90% !important;
+		display: block !important;
+		position: static !important;
+		left: auto !important;
+		top: auto !important;
+		transform: none !important;
+		overflow: visible !important;
+		width: 100% !important;
 		max-width: 320px !important;
+		margin: 0 auto !important;
 		box-shadow: none !important;
 		border: 1px solid #cbd5e1 !important;
-		background-color: #ffffff !important;
+		background: #fff !important;
+		page-break-inside: avoid;
+		break-inside: avoid;
 		-webkit-print-color-adjust: exact !important;
 		print-color-adjust: exact !important;
 	}
 
-	/* Masquer les éléments indésirables */
 	.no-print {
 		display: none !important;
 	}
