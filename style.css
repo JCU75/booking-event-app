@@ -1,6 +1,6 @@
 @media print {
 	@page {
-		margin: 10mm;
+		margin: 8mm;
 		size: auto;
 	}
 
@@ -13,12 +13,12 @@
 		background: #fff !important;
 	}
 
-	/* 1. Masquer tout ce qui n'est pas la modale (header, footer, main…) */
+	/* Masquer tout sauf la modale */
 	body > *:not(#eventModal) {
 		display: none !important;
 	}
 
-	/* 2. Neutraliser les contraintes de la modale */
+	/* Neutraliser la modale (fixed → static) */
 	#eventModal {
 		display: block !important;
 		position: static !important;
@@ -28,23 +28,22 @@
 		margin: 0 !important;
 		backdrop-filter: none !important;
 	}
-
 	#eventModal > div {
 		display: block !important;
 		max-height: none !important;
 		max-width: none !important;
+		width: 100% !important;
 		overflow: visible !important;
 		border-radius: 0 !important;
 		box-shadow: none !important;
 		margin: 0 !important;
 	}
-
-	/* 3. Cacher l'en-tête bleu de la modale */
+	/* En-tête bleu de la modale */
 	#eventModal > div > div:first-child {
 		display: none !important;
 	}
 
-	/* 4. Désactiver le scroll + hauteur max du corps de modale */
+	/* Neutraliser le conteneur scrollable */
 	#eventModal .overflow-y-auto {
 		display: block !important;
 		max-height: none !important;
@@ -52,38 +51,41 @@
 		padding: 0 !important;
 	}
 
-	/* 5. Cacher formulaire et écran "complet" */
+	/* ====== MASQUER TOUT SAUF LE TICKET ====== */
+
+	/* 1. Frères de #modalSuccess (description, bloc info, form, complet) */
+	#modalDesc,
 	#modalFormContainer,
-	#modalComplet {
+	#modalComplet,
+	#eventModal .overflow-y-auto > div.bg-slate-50 {
 		display: none !important;
 	}
 
-	/* 6. Afficher uniquement le ticket dans l'écran de succès */
-	#modalSuccess {
-		display: block !important;
-		text-align: center !important;
-		padding: 0 !important;
-	}
-	#modalSuccess > *:not(.ticket-print-area) {
-		display: none !important; /* cache le ✓, le titre, les boutons */
+	/* 2. Enfants de #modalSuccess sauf le ticket (✓, titre, boutons) */
+	#modalSuccess > *:not(#ticketCardPreview) {
+		display: none !important;
 	}
 
-	/* 7. Style du ticket : plus de position absolute, plus d'overflow */
-	.ticket-print-area {
+	#modalSuccess {
+		display: block !important;
+		padding: 0 !important;
+		margin: 0 !important;
+		text-align: center !important;
+	}
+
+	/* ====== STYLE DU TICKET ====== */
+
+	#ticketCardPreview {
 		display: block !important;
 		position: static !important;
-		left: auto !important;
-		top: auto !important;
-		transform: none !important;
-		overflow: visible !important;
 		width: 100% !important;
-		max-width: 320px !important;
+		max-width: 340px !important;
 		margin: 0 auto !important;
-		box-shadow: none !important;
 		border: 1px solid #cbd5e1 !important;
-		background: #fff !important;
-		page-break-inside: avoid;
-		break-inside: avoid;
+		box-shadow: none !important;
+		overflow: visible !important;
+		page-break-inside: avoid !important;
+		break-inside: avoid !important;
 		-webkit-print-color-adjust: exact !important;
 		print-color-adjust: exact !important;
 	}
