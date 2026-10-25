@@ -1001,27 +1001,71 @@ async function submitReservation(e) {
 		`${nouvellesRestantes} place${nouvellesRestantes > 1 ? "s" : ""}`;
 }
 function printTicket() {
-	// 1. On récupère l'événement en cours
 	const ev = events.find((e) => e.id === currentActiveEventId);
 	if (!ev) return;
 
-	// 2. On sauvegarde le titre actuel de la page
-	const originalTitle = document.title;
+	// 1. On récupère le code HTML du ticket
+	const ticketHTML = document.getElementById("ticketCardPreview").outerHTML;
 
-	// 3. On crée un nom de fichier propre
-	// On remplace les espaces et caractères spéciaux par des tirets bas
+	// 2. On crée un nom de fichier propre
 	const safeTitle = ev.title.replace(/[^a-zA-Z0-9]/g, "_");
 	const dateStr = ev.rawDate || "";
 
-	// 4. On change le titre de la page (qui deviendra le nom du PDF)
-	document.title = `Billet_Cultura_${safeTitle}_${dateStr}`;
+	// 3. On récupère les scripts CSS (Tailwind et FontAwesome) pour que le ticket soit bien stylisé
+	const links = Array.from(
+		document.querySelectorAll(
+			'link[rel="stylesheet"], script[src*="tailwind"]',
+		),
+	)
+		.map((el) => el.outerHTML)
+		.join("");
 
-	// 5. On lance l'impression
-	window.print();
+	// 4. On ouvre une nouvelle fenêtre vierge
+	const printWindow = window.open("", "_blank");
 
-	// 6. On restaure le titre original après un court délai
-	// (le temps que la boîte de dialogue d'impression s'ouvre)
+	// 5. On écrit une page HTML ultra-minimaliste avec juste le ticket
+	printWindow.document.write(`
+		<!DOCTYPE html>
+		<html lang="fr">
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<title>Billet_Cultura_${safeTitle}_${dateStr}</title>
+			${links}
+			<style>
+				/* On force la page à avoir 0 marge pour éviter la 2ème page vide */
+				@page { margin: 10mm; size: auto; }
+				body { 
+					margin: 0; 
+					padding: 0; 
+					display: flex; 
+					justify-content: center; 
+					align-items: flex-start;
+					background: white;
+					-webkit-print-color-adjust: exact;
+					print-color-adjust: exact;
+				}
+				/* On donne une taille fixe au ticket pour qu'il soit bien lisible */
+				#ticketCardPreview { 
+					width: 100% !important; 
+					max-width: 340px !important; 
+					margin: 0 !important;
+				}
+			</style>
+		</head>
+		<body>
+			${ticketHTML}
+		</body>
+		</html>
+	`);
+
+	printWindow.document.close();
+
+	// 6. On attend 500ms que le CSS (Tailwind) se charge, puis on imprime
 	setTimeout(() => {
-		document.title = originalTitle;
-	}, 1000);
+		printWindow.focus();
+		printWindow.print();
+		// On ferme la fenêtre une fois l'impression terminée
+		printWindow.onafterprint = () => printWindow.close();
+	}, 500);
 }
