@@ -408,24 +408,6 @@
 							réservées.
 						</p>
 					</div>
-
-					<div
-						id="modalComplet"
-						class="hidden text-center space-y-2 py-4"
-					>
-						<div
-							class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-lg font-bold"
-						>
-							✕
-						</div>
-						<h4 class="text-base font-bold text-slate-900">
-							Événement Complet
-						</h4>
-						<p class="text-xs text-slate-600">
-							Désolé, toutes les places pour cet événement ont été
-							réservées.
-						</p>
-					</div>
 				</div>
 			</div>
 		</div>
@@ -482,6 +464,65 @@
 					<button
 						onclick="closeAdminReservationsModal()"
 						class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-lg transition"
+					>
+						Fermer
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- MODALE QR CODE ADMIN -->
+		<div
+			id="adminQrModal"
+			class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[60] flex items-center justify-center p-4"
+		>
+			<div
+				class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden flex flex-col"
+			>
+				<div
+					class="bg-[#034475] p-4 text-white flex justify-between items-center no-print"
+				>
+					<h3 class="text-lg font-bold">QR Code Client</h3>
+					<button
+						onclick="closeAdminQrModal()"
+						class="text-slate-300 hover:text-white text-2xl font-bold"
+					>
+						&times;
+					</button>
+				</div>
+				<div
+					class="p-6 flex flex-col items-center text-center space-y-3"
+				>
+					<h4
+						class="text-base font-bold text-[#034475]"
+						id="adminQrName"
+					></h4>
+					<p class="text-xs text-slate-500" id="adminQrEvent"></p>
+					<div class="p-2 border-2 border-slate-100 rounded-xl">
+						<img
+							id="adminQrImage"
+							src=""
+							alt="QR Code"
+							class="w-48 h-48 object-contain"
+						/>
+					</div>
+					<span
+						class="text-[10px] font-mono text-slate-400 bg-slate-50 px-2 py-1 rounded"
+						id="adminQrCode"
+					></span>
+				</div>
+				<div
+					class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2 no-print"
+				>
+					<button
+						onclick="printAdminQr()"
+						class="bg-[#034475] hover:bg-[#00335a] text-white text-xs font-bold px-4 py-2 rounded-lg transition"
+					>
+						🖨 Imprimer
+					</button>
+					<button
+						onclick="closeAdminQrModal()"
+						class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold px-4 py-2 rounded-lg transition"
 					>
 						Fermer
 					</button>

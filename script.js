@@ -57,6 +57,8 @@ async function loadData() {
 				telephone: r.telephone,
 				age: r.age,
 				placesCount: r.places_count || 1,
+				ticket_code: r.ticket_code,
+				checked_in: r.checked_in || false,
 			});
 		});
 	} catch (err) {
@@ -520,6 +522,7 @@ async function onScanSuccess(decodedText) {
 			resultMessage.className = "font-bold text-lg text-red-700";
 			resultMessage.innerText = "Erreur réseau lors de la validation.";
 		} else {
+			await loadData();
 			resultContainer.classList.add("bg-green-100", "border-green-400");
 			resultMessage.className = "font-bold text-lg text-green-700";
 			resultMessage.innerText = "✅ Billet valide - Entrée autorisée";
@@ -732,7 +735,11 @@ function renderManageEventsView(container) {
 				<button onclick="window.location.hash='#admin/create'" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition shadow">+ Ajouter</button>
 			</div>
 			<div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-				<table class="w-full text-left border-collapse text-xs">
+				<!-- Version Mobile -->
+				<div id="manageMobileList" class="block md:hidden divide-y divide-slate-100"></div>
+				
+				<!-- Version Desktop -->
+				<table class="hidden md:table w-full text-left border-collapse text-xs">
 					<thead>
 						<tr class="bg-slate-50 border-b border-slate-200 text-slate-400 uppercase text-[10px]">
 							<th class="py-3 px-4">Événement</th>
@@ -751,15 +758,23 @@ function renderManageEventsView(container) {
 
 function renderManageTable() {
 	const tbody = document.getElementById("manageTableBody");
-	if (!tbody) return;
+	const mobileList = document.getElementById("manageMobileList");
+	if (!tbody || !mobileList) return;
+
 	tbody.innerHTML = "";
+	mobileList.innerHTML = "";
+
 	if (events.length === 0) {
 		tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400">Aucun événement.</td></tr>`;
+		mobileList.innerHTML = `<p class="text-center py-6 text-slate-400 text-sm">Aucun événement.</p>`;
 		return;
 	}
+
 	events.forEach((ev) => {
 		const prises = getTakenSeats(ev.id);
 		const styles = getCategoryStyles(ev.category);
+
+		// Version Desktop (Tableau)
 		tbody.innerHTML += `
 			<tr class="border-b border-slate-100 hover:bg-slate-50">
 				<td class="py-3 px-4"><div class="font-bold text-slate-900">${ev.title}</div><span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${styles.badgeColor}">${styles.label}</span></td>
@@ -771,6 +786,23 @@ function renderManageTable() {
 					<button onclick="deleteEvent('${ev.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 font-bold px-2.5 py-1.5 rounded">🗑 Supprimer</button>
 				</td>
 			</tr>
+		`;
+
+		// Version Mobile (Cartes)
+		mobileList.innerHTML += `
+			<div class="p-4 border-b border-slate-100 space-y-3">
+				<div class="flex justify-between items-start">
+					<div class="font-bold text-slate-900 text-sm">${ev.title}</div>
+					<span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${styles.badgeColor}">${styles.label}</span>
+				</div>
+				<div class="text-xs text-slate-600 font-medium"><i class="fa-regular fa-calendar mr-1"></i> ${formatDateTime(ev.rawDate, ev.time)}</div>
+				<div class="text-xs font-bold text-slate-700"><i class="fa-solid fa-user-group mr-1"></i> ${prises} / ${ev.maxPlaces} places</div>
+				<div class="flex gap-2 pt-1">
+					<button onclick="window.location.hash='#admin/edit/${ev.id}'" class="flex-1 bg-slate-100 text-slate-700 font-bold py-2 rounded text-[11px]">✏ Modifier</button>
+					<button onclick="openAdminReservationsModal('${ev.id}')" class="flex-1 bg-blue-50 text-blue-600 font-bold py-2 rounded text-[11px]">👥 Inscrits</button>
+					<button onclick="deleteEvent('${ev.id}')" class="flex-1 bg-red-50 text-red-600 font-bold py-2 rounded text-[11px]">🗑 Suppr.</button>
+				</div>
+			</div>
 		`;
 	});
 }
@@ -790,14 +822,22 @@ async function deleteEvent(eventId) {
 	}
 }
 
-function openAdminReservationsModal(eventId) {
+async function openAdminReservationsModal(eventId) {
+	// On recharge les donnéesdepuis SupaBase pour avoir les Statuts à jour
+	await loadData();
+
+	// Nettoyage de sécurité des classes d'impression résiduelles
+	document.body.classList.remove("printing-admin-qr", "printing-ticket");
+	document.body.classList.add("printing-admin-list");
+
 	const ev = events.find((e) => e.id === eventId);
 	const list = reservations[eventId] || [];
+	const presentCount = list.filter((r) => r.checked_in).length;
 
 	document.getElementById("adminResTitle").innerText =
 		`Inscrits : ${ev.title}`;
 	document.getElementById("adminResSub").innerText =
-		`${list.length} réservation(s) - ${getTakenSeats(eventId)} place(s) prise(s) sur ${ev.maxPlaces}`;
+		`${list.length} réservation(s) - ${getTakenSeats(eventId)} place(s) - ${presentCount} présent(s)`;
 	document.getElementById("printEventName").innerText =
 		`${ev.title} - ${formatDateTime(ev.rawDate, ev.time)}`;
 
@@ -805,21 +845,54 @@ function openAdminReservationsModal(eventId) {
 	if (list.length === 0) {
 		content.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">Aucune réservation.</p>`;
 	} else {
-		let html = `<table class="w-full text-left border-collapse text-xs"><thead><tr class="border-b border-slate-200 text-slate-400 uppercase text-[10px]"><th class="py-2 px-2">#</th><th class="py-2 px-2">Nom & Prénom</th><th class="py-2 px-2">E-mail</th><th class="py-2 px-2">Téléphone</th><th class="py-2 px-2">Places</th>${ev.askAge ? '<th class="py-2 px-2">Âge</th>' : ""}<th class="py-2 px-2 text-right no-print">Action</th></tr></thead><tbody>`;
-		list.forEach((item, index) => {
+		let html = `<div class="block md:hidden divide-y divide-slate-100">`;
+		list.forEach((item) => {
+			const badge = item.checked_in
+				? `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-bold">✅ Présent</span>`
+				: `<span class="bg-orange-100 text-orange-700 px-2 py-1 rounded text-[10px] font-bold">⏳ En attente</span>`;
+
 			html += `
-				<tr class="border-b border-slate-100 hover:bg-slate-50">
-					<td class="py-2.5 px-2 font-bold text-slate-400">${index + 1}</td>
-					<td class="py-2.5 px-2 font-semibold text-slate-800">${item.nom} ${item.prenom}</td>
-					<td class="py-2.5 px-2 text-blue-600 underline"><a href="mailto:${item.email}">${item.email}</a></td>
-					<td class="py-2.5 px-2 text-slate-600">${item.telephone}</td>
-					<td class="py-2.5 px-2 font-bold text-blue-600">${item.placesCount || 1} pl.</td>
-					${ev.askAge ? `<td class="py-2.5 px-2 text-slate-600 font-medium">${item.age ? item.age + " ans" : "-"}</td>` : ""}
-					<td class="py-2.5 px-2 text-right no-print">
-						<button onclick="cancelReservation('${item.id}', '${eventId}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 rounded">Annuler</button>
-					</td>
-				</tr>
-			`;
+                <div class="py-3 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <div class="font-bold text-slate-800 text-sm">${item.nom} ${item.prenom}</div>
+                        ${badge}
+                    </div>
+                    <div class="text-[11px] text-slate-600 flex flex-col gap-1">
+                        <span><i class="fa-solid fa-envelope w-4 text-slate-400"></i> ${item.email}</span>
+                        <span><i class="fa-solid fa-phone w-4 text-slate-400"></i> ${item.telephone}</span>
+                        <span><i class="fa-solid fa-ticket w-4 text-slate-400"></i> ${item.placesCount} place(s)</span>
+                        ${ev.askAge ? `<span><i class="fa-solid fa-cake-candles w-4 text-slate-400"></i> ${item.age} ans</span>` : ""}
+                    </div>
+                    <div class="flex gap-2 pt-1">
+                        <button onclick="showAdminQr('${item.id}')" class="flex-1 bg-blue-50 text-blue-600 font-bold py-2 rounded text-[11px]"><i class="fa-solid fa-qrcode"></i> Voir QR</button>
+                        <button onclick="cancelReservation('${item.id}', '${eventId}')" class="flex-1 bg-red-50 text-red-600 font-bold py-2 rounded text-[11px]">Annuler</button>
+                    </div>
+                </div>
+            `;
+		});
+		html += `</div>`;
+
+		html += `<table class="hidden md:table w-full text-left border-collapse text-xs"><thead><tr class="border-b border-slate-200 text-slate-400 uppercase text-[10px]"><th class="py-2 px-2">#</th><th class="py-2 px-2">Nom & Prénom</th><th class="py-2 px-2">Contact</th><th class="py-2 px-2">Places</th>${ev.askAge ? '<th class="py-2 px-2">Âge</th>' : ""}<th class="py-2 px-2">Statut</th><th class="py-2 px-2 text-right no-print">Actions</th></tr></thead><tbody>`;
+
+		list.forEach((item, index) => {
+			const badge = item.checked_in
+				? `<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold">✅ Présent</span>`
+				: `<span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-[10px] font-bold">⏳ En attente</span>`;
+
+			html += `
+                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="py-2.5 px-2 font-bold text-slate-400">${index + 1}</td>
+                    <td class="py-2.5 px-2 font-semibold text-slate-800">${item.nom} ${item.prenom}</td>
+                    <td class="py-2.5 px-2 text-blue-600">${item.email}<br><span class="text-slate-500 text-[10px]">${item.telephone}</span></td>
+                    <td class="py-2.5 px-2 font-bold text-blue-600">${item.placesCount || 1} pl.</td>
+                    ${ev.askAge ? `<td class="py-2.5 px-2 text-slate-600 font-medium">${item.age ? item.age + " ans" : "-"}</td>` : ""}
+                    <td class="py-2.5 px-2">${badge}</td>
+                    <td class="py-2.5 px-2 text-right space-x-1 no-print">
+                        <button onclick="showAdminQr('${item.id}')" class="text-blue-600 hover:text-blue-800 font-bold px-2 py-1 bg-blue-50 rounded" title="Voir le QR Code"><i class="fa-solid fa-qrcode"></i></button>
+                        <button onclick="cancelReservation('${item.id}', '${eventId}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 rounded">Annuler</button>
+                    </td>
+                </tr>
+            `;
 		});
 		html += `</tbody></table>`;
 		content.innerHTML = html;
@@ -827,6 +900,91 @@ function openAdminReservationsModal(eventId) {
 	document
 		.getElementById("adminReservationsModal")
 		.classList.remove("hidden");
+}
+
+function showAdminQr(resId) {
+	// Nettoyage et application de la classe propre au QR code admin
+	document.body.classList.remove("printing-admin-list", "printing-ticket");
+	document.body.classList.add("printing-admin-qr");
+
+	let res = null;
+	let eventTitle = "";
+
+	for (const evId in reservations) {
+		const found = reservations[evId].find((r) => r.id == resId);
+		if (found) {
+			res = found;
+			const ev = events.find((e) => e.id === evId);
+			if (ev) eventTitle = ev.title;
+			break;
+		}
+	}
+
+	if (!res) return;
+
+	const codeStr = res.ticket_code ? res.ticket_code : "INCONNU";
+	const shortCode =
+		codeStr !== "INCONNU" ? codeStr.substring(0, 8).toUpperCase() : "N/A";
+
+	document.getElementById("adminQrName").innerText =
+		`${res.prenom} ${res.nom}`;
+	document.getElementById("adminQrEvent").innerText = eventTitle;
+	document.getElementById("adminQrCode").innerText = `Ref: ${shortCode}`;
+
+	const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${codeStr}`;
+	document.getElementById("adminQrImage").src = qrCodeUrl;
+
+	document.getElementById("adminQrModal").classList.remove("hidden");
+}
+
+function closeAdminQrModal() {
+	document.body.classList.remove("printing-admin-qr");
+	document.getElementById("adminQrModal").classList.add("hidden");
+}
+
+function printList() {
+	// On s'assure que seule la classe admin-list est active
+	document.body.classList.remove("printing-admin-qr", "printing-ticket");
+	document.body.classList.add("printing-admin-list");
+
+	setTimeout(() => {
+		window.print();
+		window.onafterprint = () => {
+			document.body.classList.remove("printing-admin-list");
+			window.onafterprint = null;
+		};
+	}, 100);
+}
+
+function printAdminQr() {
+	document.body.classList.remove("printing-admin-list", "printing-ticket");
+	document.body.classList.add("printing-admin-qr");
+
+	const originalTitle = document.title;
+	const clientName = document
+		.getElementById("adminQrName")
+		.innerText.replace(/\s+/g, "_");
+	document.title = `Billet_${clientName}`;
+
+	const img = document.getElementById("adminQrImage");
+	const doPrint = () => {
+		setTimeout(() => {
+			window.print();
+			window.onafterprint = () => {
+				document.body.classList.remove("printing-admin-qr");
+				document.title = originalTitle;
+				window.onafterprint = null;
+			};
+		}, 300);
+	};
+
+	if (!img.complete) {
+		img.onload = doPrint;
+		img.onerror = doPrint;
+		setTimeout(doPrint, 1000);
+	} else {
+		doPrint();
+	}
 }
 
 function closeAdminReservationsModal() {
@@ -1000,25 +1158,137 @@ async function submitReservation(e) {
 	document.getElementById("modalPlacesLabel").innerText =
 		`${nouvellesRestantes} place${nouvellesRestantes > 1 ? "s" : ""}`;
 }
+// function printTicket() {
+// 	const ev = events.find((e) => e.id === currentActiveEventId);
+// 	if (!ev) return;
+
+// 	// Sauvegarde du titre actuel
+// 	const originalTitle = document.title;
+
+// 	// Création du nom du fichier
+// 	const safeTitle = ev.title.replace(/[^a-zA-Z0-9]/g, "_");
+// 	const dateStr = ev.rawDate || "";
+
+// 	// Changement du titre (qui deviendra le nom du PDF sur mobile)
+// 	document.title = `Billet_Cultura_${safeTitle}_${dateStr}`;
+
+// 	// Lancement de l'impression
+// 	window.print();
+
+// 	// Restauration du titre après l'impression
+// 	setTimeout(() => {
+// 		document.title = originalTitle;
+// 	}, 1000);
+// }
 function printTicket() {
 	const ev = events.find((e) => e.id === currentActiveEventId);
 	if (!ev) return;
 
-	// Sauvegarde du titre actuel
 	const originalTitle = document.title;
-
-	// Création du nom du fichier
 	const safeTitle = ev.title.replace(/[^a-zA-Z0-9]/g, "_");
-	const dateStr = ev.rawDate || "";
+	document.title = `Billet_Cultura_${safeTitle}_${ev.rawDate}`;
 
-	// Changement du titre (qui deviendra le nom du PDF sur mobile)
-	document.title = `Billet_Cultura_${safeTitle}_${dateStr}`;
+	// On vérifie que l'image du QR code est chargée
+	const img = document.getElementById("ticketQrImage");
+	const doPrint = () => {
+		document.body.classList.add("printing-ticket");
+		setTimeout(() => {
+			window.print();
+			window.onafterprint = () => {
+				document.body.classList.remove("printing-ticket");
+				document.title = originalTitle;
+				window.onafterprint = null;
+			};
+		}, 100);
+	};
 
-	// Lancement de l'impression
-	window.print();
+	if (!img.complete) {
+		img.onload = doPrint;
+		img.onerror = doPrint;
+		setTimeout(doPrint, 1000); // Sécurité
+	} else {
+		doPrint();
+	}
+}
 
-	// Restauration du titre après l'impression
+function printList() {
+	document.body.classList.add("printing-admin-list");
 	setTimeout(() => {
-		document.title = originalTitle;
-	}, 1000);
+		window.print();
+		window.onafterprint = () => {
+			document.body.classList.remove("printing-admin-list");
+			window.onafterprint = null;
+		};
+	}, 100);
+}
+
+function printAdminQr() {
+	const originalTitle = document.title;
+	const clientName = document
+		.getElementById("adminQrName")
+		.innerText.replace(/\s+/g, "_");
+	document.title = `Billet_${clientName}`;
+
+	const img = document.getElementById("adminQrImage");
+	const doPrint = () => {
+		document.body.classList.add("printing-admin-qr");
+		setTimeout(() => {
+			window.print();
+			window.onafterprint = () => {
+				document.body.classList.remove("printing-admin-qr");
+				document.title = originalTitle;
+				window.onafterprint = null;
+			};
+		}, 300);
+	};
+
+	if (!img.complete) {
+		img.onload = doPrint;
+		img.onerror = doPrint;
+		setTimeout(doPrint, 1000);
+	} else {
+		doPrint();
+	}
+}
+
+let currentAdminQrResId = null;
+
+function showAdminQr(resId) {
+	// Nettoyage et application de la classe propre au QR code admin
+	document.body.classList.remove("printing-admin-list", "printing-ticket");
+	document.body.classList.add("printing-admin-qr");
+
+	let res = null;
+	let eventTitle = "";
+
+	for (const evId in reservations) {
+		const found = reservations[evId].find((r) => r.id == resId);
+		if (found) {
+			res = found;
+			const ev = events.find((e) => e.id === evId);
+			if (ev) eventTitle = ev.title;
+			break;
+		}
+	}
+
+	if (!res) return;
+
+	const codeStr = res.ticket_code ? res.ticket_code : "INCONNU";
+	const shortCode =
+		codeStr !== "INCONNU" ? codeStr.substring(0, 8).toUpperCase() : "N/A";
+
+	document.getElementById("adminQrName").innerText =
+		`${res.prenom} ${res.nom}`;
+	document.getElementById("adminQrEvent").innerText = eventTitle;
+	document.getElementById("adminQrCode").innerText = `Ref: ${shortCode}`;
+
+	const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${codeStr}`;
+	document.getElementById("adminQrImage").src = qrCodeUrl;
+
+	document.getElementById("adminQrModal").classList.remove("hidden");
+}
+
+function closeAdminQrModal() {
+	document.body.classList.remove("printing-admin-qr");
+	document.getElementById("adminQrModal").classList.add("hidden");
 }
