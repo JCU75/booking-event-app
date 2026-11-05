@@ -35,6 +35,7 @@ async function loadData() {
 			time: e.time,
 			description: e.description,
 			maxPlaces: e.max_places,
+			maxPerBooking: e.max_per_booking,
 			image: e.image,
 			askAge: e.ask_age,
 		}));
@@ -561,7 +562,7 @@ function renderCreateEventView(container) {
 							<option value="dédicace">Dédicace</option>
 						</select>
 					</div>
-					<div class="grid grid-cols-3 gap-3">
+					<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
 						<div>
 							<label class="block text-xs font-bold text-slate-600 uppercase mb-1">Date</label>
 							<input type="date" id="newDate" onchange="updatePreview()" value="${defaultDateStr}" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
@@ -573,6 +574,10 @@ function renderCreateEventView(container) {
 						<div>
 							<label class="block text-xs font-bold text-slate-600 uppercase mb-1">Places max</label>
 							<input type="number" id="newMaxPlaces" oninput="updatePreview()" value="10" min="1" max="100" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
+						</div>
+						<div>
+							<label class="block text-xs font-bold text-slate-600 uppercase mb-1" title="Max par réservation">Max / résa</label>
+							<input type="number" id="newMaxPerBooking" value="5" min="1" max="50" required class="w-full bg-slate-50 border border-slate-300 p-2.5 rounded-lg text-sm">
 						</div>
 					</div>
 					<div>
@@ -644,6 +649,8 @@ async function addEvent(e) {
 		time: document.getElementById("newTime").value,
 		max_places:
 			parseInt(document.getElementById("newMaxPlaces").value) || 10,
+		max_per_booking:
+			parseInt(document.getElementById("newMaxPerBooking").value) || 5,
 		description: document.getElementById("newDesc").value,
 		image: customImage !== "" ? customImage : defaultImage,
 		ask_age: document.getElementById("newAskAge").checked,
@@ -1033,7 +1040,10 @@ function openModal(eventId) {
 	document.getElementById("modalMaxPlaces").innerText = ev.maxPlaces;
 	document.getElementById("modalEventId").value = ev.id;
 
-	const maxSelectable = Math.min(restantes, 5);
+	// On prend le minimum entre les places restantes, la limite configurée pour l'événement (ou 5 par défaut), et une limite globale de sécurité
+	const limitPerBooking = ev.maxPerBooking || 5;
+	const maxSelectable = Math.min(restantes, limitPerBooking);
+
 	let optionsHtml = "";
 	for (let i = 1; i <= maxSelectable; i++) {
 		optionsHtml += `<option value="${i}">${i} place${i > 1 ? "s" : ""}</option>`;
