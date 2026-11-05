@@ -261,39 +261,52 @@
 						</div>
 
 						<!-- Carte Ticket stylisée -->
+						<!-- Carte Ticket stylisée -->
 						<div
 							id="ticketCardPreview"
-							class="ticket-print-area bg-white border border-slate-200 border-t-[6px] border-t-[#034475] rounded-2xl overflow-hidden shadow-sm max-w-sm mx-auto text-left p-5 space-y-3 relative"
+							class="ticket-print-area bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm max-w-sm mx-auto text-left p-0 relative"
 						>
-							<!-- En-tête fusionné avec le nom du participant -->
+							<!-- En-tête bleu Cultura -->
 							<div
-								class="border-b border-slate-100 pb-3 flex justify-between items-start gap-2"
+								class="bg-[#034475] p-4 flex justify-between items-center gap-2"
 							>
-								<div>
-									<h5
-										class="font-bold text-base text-[#034475]"
-									>
-										Cultura Saint-Aunès
-									</h5>
-									<p
-										class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold mt-0.5"
-									>
-										Billet événement
-									</p>
+								<!-- Logo + Texte à gauche -->
+								<div class="flex items-center gap-3">
+									<img
+										src="https://www.cultura.com/media_12dd2d68ce701e23078febb779c9ab1b5490f9dd7.svg?width=750&format=svg&optimize=medium"
+										alt="Cultura Logo"
+										class="h-7 object-contain filter brightness-0 invert flex-shrink-0"
+									/>
+									<div class="border-l border-blue-400 pl-3">
+										<h5
+											class="font-bold text-sm text-white leading-tight"
+										>
+											Cultura Saint-Aunès
+										</h5>
+										<p
+											class="text-[9px] text-blue-200 uppercase tracking-widest font-semibold mt-0.5"
+										>
+											Billet événement
+										</p>
+									</div>
 								</div>
+
+								<!-- Nom du participant à droite -->
 								<div class="text-right">
 									<span
-										class="text-[9px] text-slate-400 block uppercase tracking-wide"
-										>Au nom de</span
+										class="text-[9px] text-blue-200 block uppercase tracking-wide"
 									>
+										Au nom de
+									</span>
 									<strong
 										id="ticketParticipantName"
-										class="capitalize text-xs text-[#034475] truncate block max-w-[130px]"
+										class="capitalize text-xs text-white truncate block max-w-[130px]"
 									></strong>
 								</div>
 							</div>
 
-							<div class="space-y-3 text-xs text-slate-700">
+							<!-- Contenu du ticket (avec le padding rétabli ici) -->
+							<div class="p-5 space-y-3 text-xs text-slate-700">
 								<!-- Bloc récapitulatif stylisé -->
 								<div
 									class="bg-blue-50/50 p-3 rounded-xl border border-blue-100 space-y-1.5 text-slate-700"

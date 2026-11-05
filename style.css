@@ -58,6 +58,21 @@
 		margin: 0 auto !important;
 		border: 1px solid #cbd5e1 !important;
 		page-break-inside: avoid !important;
+		/* Force la couleur */
+		-webkit-print-color-adjust: exact !important;
+		print-color-adjust: exact !important;
+	}
+
+	/* Cible spécifiquement le bandeau bleu (le premier enfant de la carte) */
+	body.printing-ticket #ticketCardPreview > div:first-child {
+		background-color: #034475 !important;
+		-webkit-print-color-adjust: exact !important;
+		print-color-adjust: exact !important;
+	}
+
+	/* Force les textes du bandeau en blanc */
+	body.printing-ticket #ticketCardPreview > div:first-child * {
+		color: #ffffff !important;
 	}
 
 	/* =========================================
