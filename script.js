@@ -144,7 +144,7 @@ function createEventCard(ev) {
 					<div class="flex justify-between items-center mb-5">
 						<span class="font-['Poppins'] text-base font-semibold text-[#1877F2]"><i class="fa-solid fa-calendar-days"></i> ${dateAffichage}</span>
 					</div>
-					<p class="font-['Poppins'] text-[14px] text-[#1C2D55] leading-[21px] line-clamp-6 mt-1">${ev.description}</p>
+					<p class="font-['Poppins'] text-[14px] text-[#1C2D55] leading-[21px] line-clamp-6 whitespace-pre-line mt-1">${ev.description}</p>
 				</div>
 				<div class="pt-3 border-t border-slate-100 space-y-2.5">
 					<button type="button" class="${buttonClass}">
@@ -1030,7 +1030,29 @@ function openModal(eventId) {
 
 	document.getElementById("modalCategory").innerText = styles.label;
 	document.getElementById("modalTitle").innerText = ev.title;
-	document.getElementById("modalDesc").innerText = ev.description;
+	//document.getElementById("modalDesc").innerText = ev.description;
+	// Description avec bouton "Lire la suite"
+	const modalDesc = document.getElementById("modalDesc");
+	modalDesc.innerHTML = `
+		<span id="descText" style="display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+			<span style="white-space: pre-line;">${ev.description}</span>
+		</span>
+		<button type="button" id="descToggleBtn" onclick="toggleDescription()" class="text-blue-600 font-bold text-xs mt-1 hover:underline text-left hidden">
+			Lire la suite +
+		</button>
+	`;
+
+	// On attend 150ms que le navigateur ait bien calculé la mise en page
+	setTimeout(() => {
+		const descText = document.getElementById("descText");
+		const descBtn = document.getElementById("descToggleBtn");
+		if (!descText || !descBtn) return;
+
+		// On force un calcul fiable en comparant la hauteur totale à la hauteur affichée
+		if (descText.scrollHeight > descText.offsetHeight + 5) {
+			descBtn.classList.remove("hidden");
+		}
+	}, 150);
 	document.getElementById("modalDate").innerText = formatDateTime(
 		ev.rawDate,
 		ev.time,
@@ -1101,6 +1123,24 @@ function openModal(eventId) {
 function closeModal() {
 	document.getElementById("eventModal").classList.add("hidden");
 	if (window.location.hash === "") renderClientEventsGrid();
+}
+
+function toggleDescription() {
+	const descText = document.getElementById("descText");
+	const descBtn = document.getElementById("descToggleBtn");
+	if (!descText || !descBtn) return;
+
+	const isClamped = descText.style.webkitLineClamp === "3";
+
+	if (isClamped) {
+		descText.style.webkitLineClamp = "unset";
+		descText.style.display = "block";
+		descBtn.innerText = "Réduire −";
+	} else {
+		descText.style.webkitLineClamp = "3";
+		descText.style.display = "-webkit-box";
+		descBtn.innerText = "Lire la suite +";
+	}
 }
 
 async function submitReservation(e) {
