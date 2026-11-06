@@ -815,18 +815,24 @@ function renderManageTable() {
 }
 
 async function deleteEvent(eventId) {
-	if (confirm("Voulez-vous vraiment supprimer cet événement ?")) {
-		const { error } = await supabaseClient
-			.from("events")
-			.delete()
-			.eq("id", eventId);
-		if (error) {
-			alert("Erreur : " + error.message);
-			return;
-		}
-		await loadData();
-		renderManageTable();
+	const ok = await showConfirm(
+		"Supprimer cet événement ?",
+		"Toutes les réservations associées seront également supprimées. Cette action est irréversible.",
+	);
+	if (!ok) return;
+
+	const { error } = await supabaseClient
+		.from("events")
+		.delete()
+		.eq("id", eventId);
+
+	if (error) {
+		alert("Erreur : " + error.message);
+		return;
 	}
+
+	await loadData();
+	renderManageTable();
 }
 
 async function openAdminReservationsModal(eventId) {
@@ -1002,18 +1008,24 @@ function closeAdminReservationsModal() {
 }
 
 async function cancelReservation(resId, eventId) {
-	if (confirm("Voulez-vous vraiment annuler cette réservation ?")) {
-		const { error } = await supabaseClient
-			.from("reservations")
-			.delete()
-			.eq("id", resId);
-		if (error) {
-			alert("Erreur : " + error.message);
-			return;
-		}
-		await loadData();
-		openAdminReservationsModal(eventId);
+	const ok = await showConfirm(
+		"Annuler cette réservation ?",
+		"Cette action est définitive et libérera les places pour d'autres clients.",
+	);
+	if (!ok) return;
+
+	const { error } = await supabaseClient
+		.from("reservations")
+		.delete()
+		.eq("id", resId);
+
+	if (error) {
+		alert("Erreur : " + error.message);
+		return;
 	}
+
+	await loadData();
+	openAdminReservationsModal(eventId);
 }
 
 function printList() {
@@ -1325,13 +1337,11 @@ function closeAdminQrModal() {
 }
 
 async function markAsPresent(resId, eventId) {
-	if (
-		!confirm(
-			"Confirmer la présence de ce client ? Le billet sera marqué comme utilisé.",
-		)
-	) {
-		return;
-	}
+	const ok = await showConfirm(
+		"Confirmer la présence ?",
+		"Le billet de ce client sera marqué comme utilisé.",
+	);
+	if (!ok) return;
 
 	// 1. On met à jour Supabase
 	const { error } = await supabaseClient
@@ -1349,4 +1359,29 @@ async function markAsPresent(resId, eventId) {
 
 	// 3. On rafraîchit la modale des inscrits pour voir le badge passer en "Présent"
 	openAdminReservationsModal(eventId);
+}
+
+function showConfirm(title, message) {
+	return new Promise((resolve) => {
+		const modal = document.getElementById("confirmModal");
+		const titleEl = document.getElementById("confirmTitle");
+		const msgEl = document.getElementById("confirmMessage");
+		const okBtn = document.getElementById("confirmOkBtn");
+		const cancelBtn = document.getElementById("confirmCancelBtn");
+
+		titleEl.innerText = title;
+		msgEl.innerText = message;
+		modal.classList.remove("hidden");
+
+		// Fonction de nettoyage
+		const close = (result) => {
+			modal.classList.add("hidden");
+			okBtn.onclick = null;
+			cancelBtn.onclick = null;
+			resolve(result);
+		};
+
+		okBtn.onclick = () => close(true);
+		cancelBtn.onclick = () => close(false);
+	});
 }

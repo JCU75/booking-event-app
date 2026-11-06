@@ -533,6 +533,52 @@
 			</div>
 		</div>
 
+		<!-- MODALE DE CONFIRMATION CUSTOM -->
+		<div
+			id="confirmModal"
+			class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-[70] flex items-center justify-center p-4"
+		>
+			<div
+				class="bg-white rounded-2xl shadow-2xl max-w-xs w-full overflow-hidden transform transition-all"
+			>
+				<div class="p-6 text-center space-y-4">
+					<div
+						class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-xl"
+					>
+						<i class="fa-solid fa-check"></i>
+					</div>
+					<div>
+						<h3
+							id="confirmTitle"
+							class="text-base font-bold text-slate-900 mb-1"
+						>
+							Confirmer la présence ?
+						</h3>
+						<p
+							id="confirmMessage"
+							class="text-xs text-slate-600 leading-relaxed"
+						></p>
+					</div>
+				</div>
+				<div
+					class="p-3 bg-slate-50 border-t border-slate-200 flex gap-2"
+				>
+					<button
+						id="confirmCancelBtn"
+						class="flex-1 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold py-2.5 rounded-xl transition"
+					>
+						Annuler
+					</button>
+					<button
+						id="confirmOkBtn"
+						class="flex-1 bg-[#034475] hover:bg-[#00335a] text-white text-xs font-bold py-2.5 rounded-xl transition shadow flex items-center justify-center gap-1.5"
+					>
+						<i class="fa-solid fa-check"></i> Confirmer
+					</button>
+				</div>
+			</div>
+		</div>
+
 		<!-- Pied de page -->
 		<footer class="bg-[#00447F] text-gray-100 pt-5 pb-5 border-t-4">
 			<div
