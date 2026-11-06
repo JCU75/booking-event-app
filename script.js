@@ -870,10 +870,11 @@ async function openAdminReservationsModal(eventId) {
                         <span><i class="fa-solid fa-ticket w-4 text-slate-400"></i> ${item.placesCount} place(s)</span>
                         ${ev.askAge ? `<span><i class="fa-solid fa-cake-candles w-4 text-slate-400"></i> ${item.age} ans</span>` : ""}
                     </div>
-                    <div class="flex gap-2 pt-1">
-                        <button onclick="showAdminQr('${item.id}')" class="flex-1 bg-blue-50 text-blue-600 font-bold py-2 rounded text-[11px]"><i class="fa-solid fa-qrcode"></i> Voir QR</button>
-                        <button onclick="cancelReservation('${item.id}', '${eventId}')" class="flex-1 bg-red-50 text-red-600 font-bold py-2 rounded text-[11px]">Annuler</button>
-                    </div>
+					<div class="flex gap-2 pt-1">
+						${!item.checked_in ? `<button onclick="markAsPresent('${item.id}', '${eventId}')" class="flex-1 bg-green-50 text-green-700 font-bold py-2 rounded text-[11px]"><i class="fa-solid fa-check"></i> Présent</button>` : ""}
+						<button onclick="showAdminQr('${item.id}')" class="flex-1 bg-blue-50 text-blue-600 font-bold py-2 rounded text-[11px]"><i class="fa-solid fa-qrcode"></i> Voir QR</button>
+						<button onclick="cancelReservation('${item.id}', '${eventId}')" class="flex-1 bg-red-50 text-red-600 font-bold py-2 rounded text-[11px]">Annuler</button>
+					</div>
                 </div>
             `;
 		});
@@ -894,10 +895,11 @@ async function openAdminReservationsModal(eventId) {
                     <td class="py-2.5 px-2 font-bold text-blue-600">${item.placesCount || 1} pl.</td>
                     ${ev.askAge ? `<td class="py-2.5 px-2 text-slate-600 font-medium">${item.age ? item.age + " ans" : "-"}</td>` : ""}
                     <td class="py-2.5 px-2">${badge}</td>
-                    <td class="py-2.5 px-2 text-right space-x-1 no-print">
-                        <button onclick="showAdminQr('${item.id}')" class="text-blue-600 hover:text-blue-800 font-bold px-2 py-1 bg-blue-50 rounded" title="Voir le QR Code"><i class="fa-solid fa-qrcode"></i></button>
-                        <button onclick="cancelReservation('${item.id}', '${eventId}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 rounded">Annuler</button>
-                    </td>
+					<td class="py-2.5 px-2 text-right space-x-1 no-print">
+						${!item.checked_in ? `<button onclick="markAsPresent('${item.id}', '${eventId}')" class="text-green-600 hover:text-green-800 font-bold px-2 py-1 bg-green-50 rounded" title="Marquer comme présent"><i class="fa-solid fa-check"></i></button>` : ""}
+						<button onclick="showAdminQr('${item.id}')" class="text-blue-600 hover:text-blue-800 font-bold px-2 py-1 bg-blue-50 rounded" title="Voir le QR Code"><i class="fa-solid fa-qrcode"></i></button>
+						<button onclick="cancelReservation('${item.id}', '${eventId}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 rounded">Annuler</button>
+					</td>
                 </tr>
             `;
 		});
@@ -1208,28 +1210,7 @@ async function submitReservation(e) {
 	document.getElementById("modalPlacesLabel").innerText =
 		`${nouvellesRestantes} place${nouvellesRestantes > 1 ? "s" : ""}`;
 }
-// function printTicket() {
-// 	const ev = events.find((e) => e.id === currentActiveEventId);
-// 	if (!ev) return;
 
-// 	// Sauvegarde du titre actuel
-// 	const originalTitle = document.title;
-
-// 	// Création du nom du fichier
-// 	const safeTitle = ev.title.replace(/[^a-zA-Z0-9]/g, "_");
-// 	const dateStr = ev.rawDate || "";
-
-// 	// Changement du titre (qui deviendra le nom du PDF sur mobile)
-// 	document.title = `Billet_Cultura_${safeTitle}_${dateStr}`;
-
-// 	// Lancement de l'impression
-// 	window.print();
-
-// 	// Restauration du titre après l'impression
-// 	setTimeout(() => {
-// 		document.title = originalTitle;
-// 	}, 1000);
-// }
 function printTicket() {
 	const ev = events.find((e) => e.id === currentActiveEventId);
 	if (!ev) return;
@@ -1341,4 +1322,31 @@ function showAdminQr(resId) {
 function closeAdminQrModal() {
 	document.body.classList.remove("printing-admin-qr");
 	document.getElementById("adminQrModal").classList.add("hidden");
+}
+
+async function markAsPresent(resId, eventId) {
+	if (
+		!confirm(
+			"Confirmer la présence de ce client ? Le billet sera marqué comme utilisé.",
+		)
+	) {
+		return;
+	}
+
+	// 1. On met à jour Supabase
+	const { error } = await supabaseClient
+		.from("reservations")
+		.update({ checked_in: true })
+		.eq("id", resId);
+
+	if (error) {
+		alert("Erreur lors de la validation : " + error.message);
+		return;
+	}
+
+	// 2. On recharge les données pour mettre à jour l'interface
+	await loadData();
+
+	// 3. On rafraîchit la modale des inscrits pour voir le badge passer en "Présent"
+	openAdminReservationsModal(eventId);
 }
